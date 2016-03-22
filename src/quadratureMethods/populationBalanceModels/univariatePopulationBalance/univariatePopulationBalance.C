@@ -145,9 +145,9 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
 
     volScalarField& aggregationSource = aSource.ref();
 
-    forAll(quadrature_.nodes(), pNode1I)
+    forAll(nodes_(), pNode1I)
     {
-        const extendedVolScalarNode& node1 = quadrature_.nodes()[pNode1I];
+        const extendedVolScalarNode& node1 = nodes_()[pNode1I];
 
         const volScalarField& pWeight1 = node1.primaryWeight();
 
@@ -159,9 +159,9 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
             const volScalarField& sAbscissa1
                 = node1.secondaryAbscissae()[sNode1I];
 
-            forAll(quadrature_.nodes(), pNode2I)
+            forAll(nodes_(), pNode2I)
             {
-                const extendedVolScalarNode& node2 = quadrature_.nodes()[pNode2I];
+                const extendedVolScalarNode& node2 = nodes_()[pNode2I];
 
                 const volScalarField& pWeight2 = node2.primaryWeight();
 
@@ -237,9 +237,9 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
 
     volScalarField& breakupSource = bSource.ref();
 
-    forAll(quadrature_.nodes(), pNodeI)
+    forAll(nodes_(), pNodeI)
     {
-        const extendedVolScalarNode& node = quadrature_.nodes()[pNodeI];
+        const extendedVolScalarNode& node = nodes_()[pNodeI];
 
         forAll(node.secondaryWeights(), sNodeI)
         {
@@ -334,23 +334,37 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
     return gSource;
 }
 
-Foam::tmp<Foam::fvScalarMatrix>
+Foam::tmp<Foam::volScalarField>
 Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
 ::momentSource
 (
     const volUnivariateMoment& moment
 )
 {
-    tmp<fvScalarMatrix> mSource
+    tmp<volScalarField> mSource
     (
-        new fvScalarMatrix
+        new volScalarField
         (
-            moment,
-            moment.dimensions()*dimVol/dimTime
+            IOobject
+            (
+                "mSource",
+                moment.mesh().time().timeName(),
+                moment.mesh(),
+                IOobject::NO_READ,
+                IOobject::NO_WRITE,
+                false
+            ),
+            moment.mesh(),
+            dimensionedScalar
+            (
+                "mSource",
+                moment.dimensions()/dimTime,
+                0.0
+            )
         )
     );
 
-    mSource.ref() += aggregationSource(moment) + breakupSource(moment);
+    mSource.ref() = aggregationSource(moment) + breakupSource(moment);
 
     return mSource;
 }

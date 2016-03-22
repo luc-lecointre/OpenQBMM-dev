@@ -58,6 +58,35 @@ class univariatePDFTransportModel
 
         //- Name of the univariatePDFTransportModel
         const word name_;
+        
+        //- Support
+        const word support_;
+        
+    // Variables for ODE solver
+        Switch ode_;
+        
+        //- Moment inversion method
+        autoPtr<extendedMomentInversion> momentInverter_;
+        
+        //- Moment source terms
+        PtrList<volScalarField> deltaM_;
+        
+        //- Change in moments
+        PtrList<volScalarField> k1_;
+        PtrList<volScalarField> k2_;
+        PtrList<volScalarField> k3_;
+        
+        //- ODE constants
+        scalar ATol_;
+        scalar RTol_;
+        scalar fac_;
+        scalar facMin_;
+        scalar facMax_;
+        
+        //- Stored local time step
+        dimensionedScalar h_;
+        
+        bool maxDeltaT_;
 
 protected:
 
@@ -68,6 +97,12 @@ protected:
 
         //- Velocity field
         const volVectorField& U_;
+        
+        //- Local nodes
+        autoPtr<PtrList<extendedVolScalarNode> > nodes_;
+        
+        //- Local moment set
+        volUnivariateMomentFieldSet moments_;
 
     // Protected member functions
 
@@ -91,7 +126,7 @@ protected:
             const surfaceScalarField& phiOwn,
             const surfaceScalarField& phiNei
         );
-
+        
         //- Convect moments in phase space
         virtual tmp<volScalarField> phaseSpaceConvection
         (
@@ -99,10 +134,16 @@ protected:
         ) = 0;
 
         //- Calculate source terms
-        virtual tmp<fvScalarMatrix> momentSource
+        virtual tmp<volScalarField> momentSource
         (
-            const volUnivariateMoment& moment
+            const volUnivariateMoment& m 
         ) = 0;
+        
+        //- Update local quadrature
+        void updateQuadrature();
+        
+        //- ODE solver for moment source
+        void solveMomentSource();
 
 
 public:
