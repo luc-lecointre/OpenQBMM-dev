@@ -68,14 +68,6 @@ class univariatePDFTransportModel
         //- Moment inversion method
         autoPtr<extendedMomentInversion> momentInverter_;
         
-        //- Moment source terms
-        PtrList<volScalarField> deltaM_;
-        
-        //- Change in moments
-        PtrList<volScalarField> k1_;
-        PtrList<volScalarField> k2_;
-        PtrList<volScalarField> k3_;
-        
         //- ODE constants
         scalar ATol_;
         scalar RTol_;

@@ -120,16 +120,16 @@ Foam::PDFTransportModels::mixingModels::turbulentMixing
     return gSource;
 }
 
-Foam::tmp<Foam::fvScalarMatrix>
+Foam::tmp<Foam::volScalarField>
 Foam::PDFTransportModels::mixingModels::turbulentMixing
 ::momentSource
 (
     const volUnivariateMoment& moment
 )
 {
-    const volUnivariateMomentFieldSet& moments = (*this).quadrature().moments();
+    //const volUnivariateMomentFieldSet& moments = (*this).quadrature().moments();
 
-    return mixingKernel_->K(moment, moments);
+    return mixingKernel_->K(moment, moments_);
 }
 
 void Foam::PDFTransportModels::mixingModels::turbulentMixing::solve
