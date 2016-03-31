@@ -456,16 +456,16 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
         
         err = sqrt(err/quadrature_.nMoments());
         
-        if (err == 0.0)
-        {
-            h_ = dt0 - dTime;
-            maxDeltaT_ = true;
-        }
+        //if (err == 0.0)
+        //{
+        //    h_ = dt0 - dTime;
+        //    maxDeltaT_ = true;
+        //}
         
-        else
-        {
+        //else
+        //{
             h_ = dt0*min(facMax_, max(facMin_, fac_/pow(err, 1.0/3.0)));
-        }
+        //}
         
         if (dTime.value() >= dt0.value())
         {
