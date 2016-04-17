@@ -86,11 +86,10 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
 (
     const scalar& p,
     const scalar& i,
-    const scalar& T
+    const scalar& T,
+    const scalar& Xi
 ) const
-{
-    dimensionedScalar Xi("Xi", dimless, 1.0);
-
+{   
     // Free Coupling
     if (p == 1 && i == 1)
     {
@@ -127,7 +126,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
         // Unimer Insertion
         if (p > 1 && i == 1)
         {
-            scalar R_p = Rcoll_p + Rcor_p
+            scalar R_p = Rcoll_p + Rcor_p;
             scalar R_i = pow(na_*siteVol_.value(), nuA_) + pow(nb_,nuB_)
                 *pow(siteVol_.value(), 1.0/3.0);
         
@@ -173,7 +172,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
         }
         
         // Large Aggregate Fusion
-        else if (p > 1 && i > 1)
+        else //if (p > 1 && i > 1)
         {
             scalar R_p = Rcoll_p + Rcor_p;
             scalar R_i = Rcoll_i + Rcor_i;
@@ -191,9 +190,8 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
             scalar N = nb_/(Chi/pow(siteVol_, 1.0/3.0), 5.0/3.0);
             
             scalar Dfus =
-                (Foam::constant::physicoChemical::k.value()*T
-               *sqr(Rcor_p + Rcor_i)
-               /(etaS_.value()*N*Chi*sqr(L));
+                Foam::constant::physicoChemical::k.value()*T
+               *sqr(Rcor_p + Rcor_i)/(etaS_.value()*N*Chi*sqr(L));
             
             scalar Afus = Foam::exp(-alpha_*min(p, i)*sqrt(max(p,i)));
             
@@ -246,6 +244,29 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
         
     const volScalarField& T = flThermo.T();
     
+    //const volScalarField& Xi =
+    //   abscissa1.mesh().lookupObject<IOobject>("mixF");
+    
+    volScalarField Xi
+    (
+        IOobject
+        (
+            "Xi",
+            abscissa1.mesh().time().timeName(),
+            abscissa1.mesh(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE,
+            false
+        ),
+        abscissa1.mesh(),
+        dimensionedScalar
+        (
+            "Xi",
+            dimless,
+            1.0
+        )
+    );
+    
     tmp<volScalarField> betaKernel
     (
         new volScalarField
@@ -260,13 +281,18 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
                 false
             ),
             abscissa1.mesh(),
-            dimensionedScalar("betaKernel", pow3(abscissa1.dimensions())/dimTime, 0.0)
+            dimensionedScalar
+            (
+                "betaKernel",
+                pow3(abscissa1.dimensions())/dimTime,
+                0.0
+            )
         )
     );
 
     forAll(abscissa1, cellI)
     {
-        if (abscissa1[cellI] == 0 || abscissa2[cellI] == 0)
+        if (abscissa1[cellI] == 0 && abscissa2[cellI] == 0)
         {
             betaKernel.ref()[cellI] = 0;
         }
@@ -280,41 +306,41 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
             scalar iLow  = floor(i);
             scalar iHigh = ceil(i);
             
-            if(pLow == pHigh && iLow == iHigh)
+            //if(pLow == pHigh && iLow == iHigh)
+            //{
+                betaKernel.ref()[cellI] = beta(p,i, T[cellI], Xi[cellI]);
+            //}
+            /*else if (pLow == pHigh)
             {
-                betaKernel.ref()[cellI] = beta(p,i, T[cellI]);
-            }
-            else if (pLow == pHigh)
-            {
-                scalar BpLow = beta(p, iLow, T[cellI]);
-                scalar BpHigh = beta(p, iHigh, T[cellI]);
+                scalar BpLow = beta(p, iLow, T[cellI], Xi[cellI]);
+                scalar BpHigh = beta(p, iHigh, T[cellI], Xi[cellI]);
                 
                 betaKernel.ref()[cellI] = BpLow + (iHigh - i)
                    *(BpHigh - BpLow)/(iHigh - iLow);
             }
             else if (iLow == iHigh)
             {
-                scalar BiLow = beta(pLow, i, T[cellI]);
-                scalar BiHigh = beta(pHigh, i, T[cellI]);
+                scalar BiLow = beta(pLow, i, T[cellI], Xi[cellI]);
+                scalar BiHigh = beta(pHigh, i, T[cellI], Xi[cellI]);
                 
                 betaKernel.ref()[cellI] = BiLow + (pHigh - p)
                    *(BiHigh - BiLow)/(pHigh - pLow);
             }
             else
             {
-                scalar B11 = beta(pLow, iLow, T[cellI]);
-                scalar B12 = beta(pLow, iHigh, T[cellI]);
-                scalar B21 = beta(pHigh, iLow, T[cellI]);
-                scalar B22 = beta(pHigh, iHigh, T[cellI]);
+                scalar B11 = beta(pLow, iLow, T[cellI], Xi[cellI]);
+                scalar B12 = beta(pLow, iHigh, T[cellI], Xi[cellI]);
+                scalar B21 = beta(pHigh, iLow, T[cellI], Xi[cellI]);
+                scalar B22 = beta(pHigh, iHigh, T[cellI], Xi[cellI]);
             
                 betaKernel.ref()[cellI] = 
                     (B11*(pHigh - p)*(iHigh - i) + B21*(p - pLow)*(iHigh - i)
                   + B12*(pHigh - p)*(i - iLow) + B22*(p - pLow)*(i - iLow))
                    /((pHigh - pLow)*(iHigh - iLow));
-            }
+            }*/
         }
     }
-    return betaKernel*9.00e23;
+    return betaKernel*9.00e23*5.67e-7;
     
 }
 

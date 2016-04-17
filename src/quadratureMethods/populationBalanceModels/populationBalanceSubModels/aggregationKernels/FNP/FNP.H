@@ -71,29 +71,45 @@ class FNP
     public aggregationKernel
 {
 //- Private variables
-
-    //- Constant refrence to fluid thermo model
-    const fluidThermo& flThermo_;
-
-    //- Boltzmann's constant
-    dimensionedScalar kb_;
-    
-    //- Avagradro's Number
-    dimensionedScalar avagadro_;
     
     //- Number of unimers
     scalar nUnimers_;
     
-    //- Volume of one polymer site
-    dimensionedScalar polySite_;
+    //- Volume of one molecule
+    dimensionedScalar cellVol_;
     
-    //- Length of polymers
-    dimensionedScalar na_;
-    dimensionedScalar nb_;
+    //- Volume of hydrophobic and hydophilic sites
+    dimensionedScalar siteVol_;
+    
+    //- Energy efficiency factor
+    scalar alpha_;
+    
+    //- Length of polymers (number)
+    scalar na_;
+    scalar nb_;
     
     //- Flory exponents
-    dimensionedScalar nuA_;
-    dimensionedScalar nuB_;
+    scalar nuA_;
+    scalar nuB_;
+    
+    //- Solvent viscosity
+    dimensionedScalar etaS_;
+    
+    //- Solubility Limits
+    dimensionedScalar Xip_;
+    dimensionedScalar Xi0_;
+    
+//- Private Memeber Functions
+    
+    //- Calcuation of beta kernel
+    scalar beta
+    (
+        const scalar& p,
+        const scalar& i,
+        const scalar& T,
+        const scalar& Xi
+    ) const;
+        
     
 public:
 
@@ -113,9 +129,6 @@ public:
 
     // Member Functions
 
-        //- Calcuation of beta kernel
-        volScalarField beta(scalar p, scalar i);
-        
         //- Aggregation kernel
         virtual tmp<volScalarField> Ka
         (
