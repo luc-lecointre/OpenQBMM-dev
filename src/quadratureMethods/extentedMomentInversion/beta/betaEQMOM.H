@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2014-2015 Alberto Passalacqua
+    \\  /    A nd           | Copyright (C) 2014-2016 Alberto Passalacqua
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -29,18 +29,24 @@ Description
 
     References
     \verbatim
-        "An extended quadrature method of moments for population balance 
+        "An extended quadrature method of moments for population balance
         equations"
         C Yuan, F Laurent, R O Fox
         Journal of Aerosol Science
         Volume 51, Pages 1-23, 2012
     \endverbatim
-    
+
     \verbatim
-        "The theory of canonical moments with applications in Statistics, 
+        "The theory of canonical moments with applications in Statistics,
         Probability and Analysis"
-        H Dette, W J Studden 
+        H Dette, W J Studden
         Wiley & Sons, 1997
+    \endverbatim
+
+    \verbatim
+        "Orthogonal Polynomials: Computational and Approximation"
+        W Gautschi
+        Oxford University Press, USA, 2004
     \endverbatim
 
 SourceFiles
@@ -88,7 +94,7 @@ public:
 
     // Member Functions
 
-    //- Computes the secondary abscissa 
+    //- Computes the secondary abscissa
     virtual scalar secondaryAbscissa
     (
         scalar primaryAbscissa,
@@ -111,22 +117,22 @@ public:
         const univariateMomentSet& moments,
         univariateMomentSet& momentsStar
     );
-    
+
     //- Compute the last moment from starred moments
     virtual scalar m2N(scalar sigma, univariateMomentSet momentsStar);
 
     //- Recurrence relation for polynomials orthogonal to kernel function
     virtual void recurrenceRelation
     (
-        scalarDiagonalMatrix& a, 
+        scalarDiagonalMatrix& a,
         scalarDiagonalMatrix& b,
         scalar primaryAbscissa,
         scalar sigma
     );
-    
+
     //- Compute maximum value of sigma to ensure realizability
     virtual scalar sigmaMax(univariateMomentSet& moments);
-    
+
 };
 
 

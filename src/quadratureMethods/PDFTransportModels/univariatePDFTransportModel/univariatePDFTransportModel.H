@@ -96,6 +96,9 @@ protected:
         //- Local moment set
         volUnivariateMomentFieldSet moments_;
 
+        //- Face velocity field
+        const surfaceScalarField& phi_;
+
     // Protected member functions
 
         //- Diffusion term
@@ -105,18 +108,12 @@ protected:
         ) = 0;
 
         //- Update fields required to compute kinetic fluxes
-        void updatePhysicalSpaceConvection
-        (
-            surfaceScalarField& phiOwn,
-            surfaceScalarField& phiNei
-        );
+        void updatePhysicalSpaceConvection();
 
         //- Calculate explicit convection term in physical space
         tmp<volScalarField> physicalSpaceConvection
         (
-            const volUnivariateMoment& moment,
-            const surfaceScalarField& phiOwn,
-            const surfaceScalarField& phiNei
+            const volUnivariateMoment& moment
         );
         
         //- Convect moments in phase space
@@ -149,6 +146,7 @@ public:
             const dictionary& dict,
             const fvMesh& mesh,
             const volVectorField& U,
+            const surfaceScalarField& phi,
             const word support
         );
 

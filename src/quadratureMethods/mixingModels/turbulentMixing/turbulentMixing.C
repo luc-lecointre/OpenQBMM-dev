@@ -55,7 +55,7 @@ Foam::PDFTransportModels::mixingModels::turbulentMixing::turbulentMixing
     const surfaceScalarField& phi
 )
 :
-    univariatePDFTransportModel(name, dict, U.mesh(), U, "01"),
+    univariatePDFTransportModel(name, dict, U.mesh(), U, phi, "01"),
     mixingModel(name, dict, U, phi),
     name_(name),
     mixingKernel_
@@ -113,7 +113,7 @@ Foam::PDFTransportModels::mixingModels::turbulentMixing
                 false
             ),
             U_.mesh(),
-            dimensionedScalar("zero", dimless, 0.0)
+            dimensionedScalar("zero", moment.dimensions()/dimTime, 0.0)
         )
     );
 
