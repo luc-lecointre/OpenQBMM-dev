@@ -7,27 +7,21 @@
 -------------------------------------------------------------------------------
 License
     This file is derivative work of OpenFOAM.
-
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-
     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
     for more details.
-
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
-
 Class
     Foam::univariateMomentSet
-
 Description
     Stores, checks realizability and calculates the quadrature representation of
     a measure from a set of univariate moments.
-
     References
     \verbatim
         "Modified moments and Gaussian quadratures"
@@ -35,20 +29,17 @@ Description
         Rocky Mountain Journal of Mathematics
         Volume 4, Pages 287-296, 1974
     \endverbatim
-
     \verbatim
         "Numerical Recipes in C++"
         W H Press, S A Teukolsky, W Vetterling, B P Flannery
         Cambridge University Press, 2007
     \endverbatim
-
     \verbatim
         "The theory of canonical moments with applications in Statistics,
         Probability and Analysis"
         H Dette, W. J. Studden
         Wiley & Sons, 1997
     \endverbatim
-
     \verbatim
         "Matrix measures, moment spaces and Favard’s theorem for the interval
         [0, 1] and [0,∞)"
@@ -56,11 +47,9 @@ Description
         Linear algebra and its applications
         Issue 345, Pages 169-193, 2002
     \endverbatim
-
 SourceFiles
     univariateMomentSet.C
     univariateMomentSetI.H
-
 \*---------------------------------------------------------------------------*/
 
 #ifndef univariateMomentSet_H

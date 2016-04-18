@@ -58,6 +58,7 @@ Foam::PDFTransportModels::mixingModels::turbulentMixing::turbulentMixing
     univariatePDFTransportModel(name, dict, U.mesh(), U, phi, "01"),
     mixingModel(name, dict, U, phi),
     name_(name),
+    mixODE_(dict.subDict("odeSourceTerms").lookup("mixing")),
     mixingKernel_
     (
         Foam::mixingSubModels::mixingKernel::New
@@ -129,7 +130,19 @@ Foam::PDFTransportModels::mixingModels::turbulentMixing
 {
     //const volUnivariateMomentFieldSet& moments = (*this).quadrature().moments();
 
-    return mixingKernel_->K(moment, moments_);
+    return pos(-1*mixODE_)*mixingKernel_->K(moment, moments_);
+}
+
+Foam::tmp<Foam::volScalarField>
+Foam::PDFTransportModels::mixingModels::turbulentMixing
+::momentSourceODE
+(
+    const volUnivariateMoment& moment
+)
+{
+    //const volUnivariateMomentFieldSet& moments = (*this).quadrature().moments();
+
+    return mixODE_*mixingKernel_->K(moment, moments_);
 }
 
 void Foam::PDFTransportModels::mixingModels::turbulentMixing::solve

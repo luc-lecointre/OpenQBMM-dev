@@ -90,14 +90,14 @@ protected:
         //- Velocity field
         const volVectorField& U_;
         
+        //- Face velocity field
+        const surfaceScalarField& phi_;
+        
         //- Local nodes
         autoPtr<PtrList<extendedVolScalarNode> > nodes_;
         
         //- Local moment set
         volUnivariateMomentFieldSet moments_;
-
-        //- Face velocity field
-        const surfaceScalarField& phi_;
 
     // Protected member functions
 
@@ -122,8 +122,14 @@ protected:
             const volUnivariateMoment& moment
         ) = 0;
 
-        //- Calculate source terms
+        //- Calculate source terms (not uded in ODE)
         virtual tmp<volScalarField> momentSource
+        (
+            const volUnivariateMoment& m 
+        ) = 0;
+        
+        //- Calculate source terms for ODE
+        virtual tmp<volScalarField> momentSourceODE
         (
             const volUnivariateMoment& m 
         ) = 0;

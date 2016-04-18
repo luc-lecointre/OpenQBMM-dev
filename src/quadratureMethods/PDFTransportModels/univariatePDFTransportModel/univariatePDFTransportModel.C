@@ -383,10 +383,8 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
         // Calculate k1 for all moments
         forAll(moments_, mI)
         {
-            k1[mI] = h_*momentSource(moments_[mI]);
-            volScalarField mZero = momentsOld[mI] + k1[mI];
-            
-            moments_[mI] == mZero;
+            k1[mI] = h_*momentSourceODE(moments_[mI]);
+            moments_[mI] == momentsOld[mI] + k1[mI];
         }
         
         updateQuadrature();
@@ -394,10 +392,8 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
         // Calculate k2 for all moments
         forAll(moments_, mI)
         {
-            k2[mI] = h_*momentSource(moments_[mI]);
-            volScalarField mWhole = momentsOld[mI] + (k1[mI] + k2[mI])/4.0;
-            
-            moments_[mI] == mWhole;
+            k2[mI] = h_*momentSourceODE(moments_[mI]);
+            moments_[mI] == momentsOld[mI] + (k1[mI] + k2[mI])/4.0;
         }
     
         updateQuadrature();
@@ -405,13 +401,12 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
         // calculate k3 and new moments for all moments
         forAll(moments_, mI)
         {
-            k3[mI] = h_*momentSource(moments_[mI]);
+            k3[mI] = h_*momentSourceODE(moments_[mI]);
             
-            moments_[mI] == momentsOld[mI]
-                + (k1[mI] + k2[mI] + 4.0*k3[mI])/6.0;
+            // Second order accurate, k3 only used for error estimation
+            moments_[mI] == momentsOld[mI] + (k1[mI] + k2[mI] + 4.0*k3[mI])/6.0;
         }
-        
-        updateQuadrature();        
+        updateQuadrature();
         
         // Calculate error
         scalar err = 0.0;
@@ -425,16 +420,16 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
         
         err = sqrt(err/quadrature_.nMoments());
         
-        //if (err == 0.0)
-        //{
-        //    h_ = dt0 - dTime;
-        //    maxDeltaT_ = true;
-        //}
+        if (err == 0.0)
+        {
+            h_ = dt0 - dTime;
+            maxDeltaT_ = true;
+        }
         
-        //else
-        //{
+        else
+        {
             h_ = dt0*min(facMax_, max(facMin_, fac_/pow(err, 1.0/3.0)));
-        //}
+        }
         
         if (dTime.value() >= dt0.value())
         {
@@ -454,7 +449,7 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
 
 void Foam::PDFTransportModels::univariatePDFTransportModel::solve()
 {
-    updatePhysicalSpaceConvection();
+    //updatePhysicalSpaceConvection();
     solveMomentSource();
     
     // List of moment transport equations
@@ -471,12 +466,12 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solve()
             new fvScalarMatrix
             (
                 fvm::ddt(m)
-              //+ fvm::div(phi_, m, "div(phi,moment)")
-              + physicalSpaceConvection(m)
+              + fvm::div(phi_, m, "div(phi,moment)")
+              //+ physicalSpaceConvection(m)
               - momentDiffusion(m)
               ==
                 (moments_[mI] - m)/U_.mesh().time().deltaT()
-              + phaseSpaceConvection(m)
+              + momentSource(m)
             )
         );
     }

@@ -7,20 +7,16 @@
 -------------------------------------------------------------------------------
 License
     This file is derivative work of OpenFOAM.
-
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-
     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
     for more details.
-
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
-
 \*---------------------------------------------------------------------------*/
 
 #include "univariateMomentSet.H"
@@ -104,16 +100,6 @@ void Foam::univariateMomentSet::invert()
         return;
     }
 
-    if (isDegenerate())
-    {
-        setupQuadrature();
-        weights_[0] = (*this)[0];
-        abscissae_[0] = 0.0;
-        inverted_ = true;
-
-        return;
-    }
-
     if (!realizabilityChecked_)
     {
         checkRealizability();
@@ -123,6 +109,16 @@ void Foam::univariateMomentSet::invert()
     if (!quadratureSetUp_)
     {
         setupQuadrature(true);
+    }
+
+    if (degenerate_)
+    {
+        weights_[0] = (*this)[0];
+        abscissae_[0] = 0.0;
+
+        inverted_ = true;
+
+        return;
     }
 
     if (nInvertibleMoments_ < 2)
@@ -613,36 +609,6 @@ void Foam::univariateMomentSet::checkRealizability()
 
                 return;
             }
-            else // zeta[2*nD] > 0.0
-            {
-                if (support_ == "RPlus")
-                {
-                    negativeZeta_ = 0;
-                    nRealizableMoments_ = nMoments_;
-                    fullyRealizable_ = true;
-                    onMomentSpaceBoundary_ = false;
-                }
-                else // Support on [0,1]
-                {
-                    checkCanonicalMoments(zeta, 2*nD + 1);
-
-                    if (onMomentSpaceBoundary_)
-                    {
-                        fullyRealizable_ = true;
-                    }
-                    else
-                    {
-                        fullyRealizable_ = false;
-                    }
-                }
-
-                calcNInvertibleMoments();
-
-                subsetRealizable_ = true;
-                realizabilityChecked_ = true;
-
-                return;
-            }
         }
         else
         {
@@ -734,5 +700,3 @@ void Foam::univariateMomentSet::update()
     realizabilityChecked_ = false;
     inverted_ = false;
 }
-
-// ************************************************************************* //

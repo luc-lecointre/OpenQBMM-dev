@@ -60,6 +60,9 @@ class turbulentMixing
     // Private data
 
         const word name_;
+        
+        //- Switch indicating if mixing is solved with ODE
+        Switch mixODE_;
 
         //- Aggregation kernel model
         autoPtr
@@ -87,8 +90,14 @@ class turbulentMixing
             const volUnivariateMoment& moment
         );
 
-        //- Calculate source terms
+        //- Calculate source terms not used in ODE
         virtual tmp<volScalarField> momentSource
+        (
+            const volUnivariateMoment& moment
+        );
+        
+        //- Calculate source terms used in ODE
+        virtual tmp<volScalarField> momentSourceODE
         (
             const volUnivariateMoment& moment
         );
