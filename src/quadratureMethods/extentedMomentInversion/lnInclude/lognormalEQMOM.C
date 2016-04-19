@@ -1,0 +1,1 @@
+../lognormal/lognormalEQMOM.C
