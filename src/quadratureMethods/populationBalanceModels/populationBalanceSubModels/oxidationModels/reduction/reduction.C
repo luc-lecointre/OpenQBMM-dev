@@ -76,9 +76,9 @@ Foam::populationBalanceSubModels::oxidationModels::reduction
 {
     const volScalarField& concentration(mesh_.lookupObject<volScalarField>("OH"));
     
-    //const fluidThermo& flThermo = mesh_.lookupObject<fluidThermo>(basicThermo::dictName);
+    const volScalarField& rho = mesh_.lookupObject<volScalarField>("rho");
     
-    return (cRed_*concentration[cellI]*mesh_.time().deltaT().value()/3);
+    return (cRed_*concentration[cellI]*mesh_.time().deltaT().value()*rho[cellI]/3);
 }
 
 Foam::scalar
@@ -87,9 +87,9 @@ Foam::populationBalanceSubModels::oxidationModels::reduction
 {
     const volScalarField& concentration(mesh_.lookupObject<volScalarField>("OH"));
     
-    //const fluidThermo& flThermo = mesh_.lookupObject<fluidThermo>(basicThermo::dictName);
+    const volScalarField& rho = mesh_.lookupObject<volScalarField>("rho");
     
-    return (abscissa - cRed_*concentration[cellI]*mesh_.time().deltaT().value()/3);
+    return (abscissa - cRed_*concentration[cellI]*rho[cellI]*mesh_.time().deltaT().value()/3);
     
 }
 
