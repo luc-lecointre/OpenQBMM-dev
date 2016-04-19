@@ -1,0 +1,79 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    location    "0.03";
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   nonuniform List<vector> 
+12
+(
+(-5.30992e-05 -2.0617e-11 0.0798498)
+(-5.25908e-05 -2.17882e-11 0.080731)
+(-5.20545e-05 -2.29707e-11 0.0816341)
+(-5.14897e-05 -2.41645e-11 0.0825448)
+(-5.08962e-05 -2.53678e-11 0.0834719)
+(-5.02743e-05 -2.65771e-11 0.0843869)
+(-4.96242e-05 -2.77824e-11 0.0852996)
+(-4.89461e-05 -2.89722e-11 0.0862183)
+(-4.82401e-05 -3.01917e-11 0.0871468)
+(-4.75069e-05 -3.1465e-11 0.0880706)
+(-4.67471e-05 -3.14368e-11 0.0889798)
+(-4.59609e-05 -3.14233e-11 0.0898831)
+)
+;
+
+boundaryField
+{
+    front
+    {
+        type            wedge;
+    }
+    back
+    {
+        type            wedge;
+    }
+    wall
+    {
+        type            zeroGradient;
+    }
+    fuel
+    {
+        type            fixedValue;
+        value           nonuniform 0();
+    }
+    outlet
+    {
+        type            pressureInletOutletVelocity;
+        value           nonuniform 0();
+    }
+    axis
+    {
+        type            empty;
+    }
+    procBoundary4to3
+    {
+        type            processor;
+        value           uniform (-5.35799e-05 -1.94575e-11 0.078993);
+    }
+    procBoundary4to5
+    {
+        type            processor;
+        value           uniform (-4.51486e-05 -3.14202e-11 0.0907756);
+    }
+}
+
+
+// ************************************************************************* //

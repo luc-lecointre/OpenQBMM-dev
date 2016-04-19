@@ -78,7 +78,7 @@ Foam::populationBalanceSubModels::nucleationModels::Miller::~Miller()
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-Foam::dimensionedScalar
+/*Foam::dimensionedScalar
 Foam::populationBalanceSubModels::nucleationModels::Miller
 ::volume(const scalar& nC)
 {
@@ -141,15 +141,15 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
     volScalarField jT = 0.5*Kfm(2*nCarbonPAH_)*sqr(Foam::constant::physicoChemical::NA*pahConcentration*flThermo.rho()/MPAH);
     
     return jT*pow(abscissaNucleation,moment.order());
-}
+}*/
 
 
-/*Foam::tmp<Foam::volScalarField>
+Foam::tmp<Foam::volScalarField>
 Foam::populationBalanceSubModels::nucleationModels::Miller
 ::nucleationSource(const volUnivariateMoment& moment) 
 {
     
-    dimensionedScalar abscissaNucleation = pow(6.0/Foam::constant::mathematical::pi*2.0*MCarbon_*2*nCarbonPAH_/(rhoSoot_*Foam::constant::physicoChemical::NA),1.0/3.0);
+    dimensionedScalar abscissaNucleation = pow(6.0/Foam::constant::mathematical::pi*2.0*MCarbon_*2.0*nCarbonPAH_/(rhoSoot_*Foam::constant::physicoChemical::NA),1.0/3.0);
         
     const volScalarField& pahConcentration(mesh_.lookupObject<volScalarField>("A4"));
     
@@ -164,15 +164,13 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
     tmp<volScalarField> nucleationSource = 4.4*sqrt(Foam::constant::mathematical::pi
         *Foam::constant::physicoChemical::k
         *flThermo.T()*Foam::constant::physicoChemical::NA
-        /(nCarbonPAH_*MCarbon_))
-        *pow(6.0*nCarbonPAH_*MCarbon_
+        /(2.0*nCarbonPAH_*MCarbon_))
+        *pow(12.0*nCarbonPAH_*MCarbon_
         /(Foam::constant::mathematical::pi*rhoSoot_
         *Foam::constant::physicoChemical::NA), 2.0/3.0)
-        *sqr(pahConcentration*flThermo.rho()/MPAH)*sqr(Foam::constant::physicoChemical::NA); 
-        
-    nucleationSource=nucleationSource*pow(abscissaNucleation, moment.order());
+        *sqr(pahConcentration*flThermo.rho()/MPAH*Foam::constant::physicoChemical::NA)*pow(abscissaNucleation, moment.order()); 
     
-    nucleationSource.ref().dimensions().reset(moment.dimensions()/dimTime);
+    //nucleationSource.ref().dimensions().reset(moment.dimensions()/dimTime);
     
     //Info << "deltaT : " << mesh_.time().deltaT()<< endl;
     
@@ -181,6 +179,6 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
     //Info << "moment" << moment.order() << ":" << moment[0] << endl;
     
     return nucleationSource;
-}*/
+}
 
 // ************************************************************************* //
