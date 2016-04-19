@@ -136,10 +136,10 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
             scalar D_i = Foam::constant::physicoChemical::k.value()*T
                 /(6.0*Foam::constant::mathematical::pi*etaS_.value()*R_i);
             
-            scalar Cstar = 1/(siteVol_.value()*pow(nb_, (3.0*nuB_ - 1.0)));
+            scalar Cstar = 1.0/(siteVol_.value()*pow(nb_, (3.0*nuB_ - 1.0)));
             scalar Cratio = Cstar/Ccor_p;
             scalar Dstar = D_i*pow(Cratio, 1.5);
-            scalar Ains = Foam::exp(-alpha_*Foam::sqrt(p));
+            scalar Ains = exp(-alpha_*Foam::sqrt(p));
             
             return
                  4.0*Foam::constant::mathematical::pi
@@ -161,7 +161,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
             scalar D_i = Foam::constant::physicoChemical::k.value()*T
                 /(6.0*Foam::constant::mathematical::pi*etaS_.value()*R_i);
             
-            scalar Cstar = 1/(siteVol_.value()*pow(nb_, (3.0*nuB_ - 1.0)));
+            scalar Cstar = 1.0/(siteVol_.value()*pow(nb_, (3.0*nuB_ - 1.0)));
             scalar Cratio = Cstar/Ccor_i;
             scalar Dstar = D_i*pow(Cratio, 1.5);
             scalar Ains = Foam::exp(-alpha_*Foam::sqrt(i));
@@ -196,7 +196,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
                 Foam::constant::physicoChemical::k.value()*T
                *sqr(Rcor_p + Rcor_i)/(etaS_.value()*N*Chi*sqr(L));
             
-            scalar Afus = Foam::exp(-alpha_*min(p, i)*sqrt(max(p,i)));
+            scalar Afus = exp(-alpha_*min(p, i)*sqrt(max(p,i)));
             
             return
                  4.0*Foam::constant::mathematical::pi
@@ -291,12 +291,12 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
             scalar iLow  = floor(i);
             scalar iHigh = ceil(i);
             
-            //if(pLow == pHigh && iLow == iHigh)
-            //{
+            if(pLow == pHigh && iLow == iHigh)
+            {
                 betaKernel.ref()[cellI] =
                     beta(p,i, T[cellI], mixtureFraction[cellI]);
-            //}
-            /*else if (pLow == pHigh)
+            }
+            else if (pLow == pHigh)
             {
                 scalar BpLow = beta(p, iLow, T[cellI], mixtureFraction[cellI]);
                 scalar BpHigh = beta(p, iHigh, T[cellI], mixtureFraction[cellI]);
@@ -323,7 +323,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
                     (B11*(pHigh - p)*(iHigh - i) + B21*(p - pLow)*(iHigh - i)
                   + B12*(pHigh - p)*(i - iLow) + B22*(p - pLow)*(i - iLow))
                    /((pHigh - pLow)*(iHigh - iLow));
-            }*/
+            }
         }
     }
     return betaKernel*9.00e23*5.67e-7;

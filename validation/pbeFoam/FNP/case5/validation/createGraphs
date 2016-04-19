@@ -36,10 +36,11 @@
 
 createEpsD43()
 {
-    openqbmmM4=$1
-    openqbmmM3=$2
-    verif=$3
-    valid=$4
+    openqbmmM0=$1
+    openqbmmM1=$2
+    openqbmmM2=$3
+    openqbmmM3=$4
+    openqbmmM4=$5
 
     gnuplot<<EOF
     set terminal postscript eps enhanced color font 'Helvetica,24' linewidth 2
@@ -47,18 +48,14 @@ createEpsD43()
     set xlabel "Time, t / [s]"
     set ylabel "d_{43} / [{/Symbol m}m]"
     set grid
-    set key left bottom
+    set key right top
     set size 1,1
-    set xrange [1:200]
-    set yrange [1:5]
     plot \
-        "$verif" using 1:(\$6/\$5) title "Madadi and Passalacqua (2015)" \
-            with lines linetype -1 linewidth 2 linecolor rgb 'blue', \
-        "$valid" title "Rigorous solution (Vanni, 2000)" \
-            with lines linetype -1 linewidth 2 linecolor rgb 'black', \
-        '< paste $openqbmmM4 $openqbmmM3' using 1:(\$2/\$4) every 5000 \
-            title "OpenQBMM" with points linetype -1 pointtype 6 linewidth 2 \
-            linecolor rgb "#9db668"
+        '< paste $openqbmmM0 ' using 1:(\$2) title "Moment.0", \
+        '< paste $openqbmmM1 ' using 1:(\$2) title "Moment.1", \
+        '< paste $openqbmmM2 ' using 1:(\$2) title "Moment.2", \
+        '< paste $openqbmmM3 ' using 1:(\$2) title "Moment.3", \
+        '< paste $openqbmmM4 ' using 1:(\$2) title "Moment.4", \
 
 
 EOF
@@ -86,12 +83,13 @@ VERIFICATIONDATAROOT=./verificationData
 VALIDATIONDATAROOT=./validationData
 
 echo "    processing d43 profile" > log.createGraphs 2>&1
+OPENQBMMM0="$OPENQBMMDATAROOT/moment.0.populationBalance"
+OPENQBMMM1="$OPENQBMMDATAROOT/moment.1.populationBalance"
+OPENQBMMM2="$OPENQBMMDATAROOT/moment.2.populationBalance"
 OPENQBMMM3="$OPENQBMMDATAROOT/moment.3.populationBalance"
 OPENQBMMM4="$OPENQBMMDATAROOT/moment.4.populationBalance"
-VERIFICATION="$VERIFICATIONDATAROOT/MadadiPassalacqua2015_d43.dat"
-VALIDATION="$VALIDATIONDATAROOT/Vanni2000_d43.dat"
 
-createEpsD43 $OPENQBMMM4 $OPENQBMMM3 $VERIFICATION $VALIDATION
+createEpsD43 $OPENQBMMM0 $OPENQBMMM1 $OPENQBMMM2 $OPENQBMMM3 $OPENQBMMM4
 
 echo Done
 
