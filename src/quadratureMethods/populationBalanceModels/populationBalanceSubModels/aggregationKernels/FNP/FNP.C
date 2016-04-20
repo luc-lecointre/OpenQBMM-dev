@@ -163,7 +163,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
             
             scalar Cstar = 1.0/(siteVol_.value()*pow(nb_, (3.0*nuB_ - 1.0)));
             scalar Cratio = Cstar/Ccor_i;
-            scalar Dstar = D_i*pow(Cratio, 1.5);
+            scalar Dstar = D_p*pow(Cratio, 1.5);
             scalar Ains = Foam::exp(-alpha_*Foam::sqrt(i));
             
             return
@@ -175,7 +175,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
         }
         
         // Large Aggregate Fusion
-        else //if (p > 1 && i > 1)
+        else if (p > 1 && i > 1)
         {
             scalar R_p = Rcoll_p + Rcor_p;
             scalar R_i = Rcoll_i + Rcor_i;
@@ -190,7 +190,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
                /pow((Ccor_p + Ccor_i)*siteVol_.value(), 3.0/4.0);
                 
             scalar L = sqr(Rcor_p + Rcor_i)/Chi;
-            scalar N = nb_/(Chi/pow(siteVol_, 1.0/3.0), 5.0/3.0);
+            scalar N = nb_/pow(Chi/pow(siteVol_, 1.0/3.0), 5.0/3.0);
             
             scalar Dfus =
                 Foam::constant::physicoChemical::k.value()*T
@@ -203,6 +203,10 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
                 *pos(mixtureFraction - Xip_).value()*Afus*((D_p + D_i)
                 *Dfus*(Rcoll_p + Rcoll_i)*(Rcoll_p + Rcoll_i + Rcor_p + Rcor_i))
                 /(Dfus*(Rcoll_p + Rcoll_i) + (D_p + D_i)*(Rcor_p + Rcor_i));
+        }
+        else
+        {
+            return scalar(0);
         }
     }
 }
