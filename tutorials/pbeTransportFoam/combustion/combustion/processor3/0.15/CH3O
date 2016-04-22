@@ -1,0 +1,69 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0.15";
+    object      CH3O;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 0 0 0 0];
+
+internalField   nonuniform List<scalar> 
+13
+(
+9.9647e-12
+8.39145e-12
+7.06964e-12
+5.95849e-12
+5.01556e-12
+4.22909e-12
+3.56758e-12
+3.00827e-12
+2.53774e-12
+2.14548e-12
+1.81965e-12
+1.55416e-12
+1.3364e-12
+)
+;
+
+boundaryField
+{
+    wall
+    {
+        type            zeroGradient;
+    }
+    fuel
+    {
+        type            fixedValue;
+        value           nonuniform 0();
+    }
+    outlet
+    {
+        type            inletOutlet;
+        inletValue      nonuniform 0();
+        value           nonuniform 0();
+    }
+    procBoundary3to2
+    {
+        type            processor;
+        value           uniform 1.18333e-11;
+    }
+    procBoundary3to4
+    {
+        type            processor;
+        value           uniform 1.15923e-12;
+    }
+}
+
+
+// ************************************************************************* //

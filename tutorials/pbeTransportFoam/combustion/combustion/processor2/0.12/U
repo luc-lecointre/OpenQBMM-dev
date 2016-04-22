@@ -1,0 +1,67 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    location    "0.12";
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   nonuniform List<vector> 
+12
+(
+(4.56801e-13 -4.56801e-13 0.0544107)
+(4.50993e-13 -4.50993e-13 0.0553772)
+(4.4518e-13 -4.4518e-13 0.0563547)
+(4.39358e-13 -4.39358e-13 0.0573564)
+(4.33524e-13 -4.33524e-13 0.0583459)
+(4.27677e-13 -4.27677e-13 0.0593391)
+(4.21812e-13 -4.21812e-13 0.0603267)
+(4.15929e-13 -4.15929e-13 0.0613111)
+(4.10025e-13 -4.10025e-13 0.0622974)
+(4.04097e-13 -4.04097e-13 0.0632889)
+(3.98145e-13 -3.98145e-13 0.0642801)
+(3.92166e-13 -3.92166e-13 0.0652601)
+)
+;
+
+boundaryField
+{
+    wall
+    {
+        type            zeroGradient;
+    }
+    fuel
+    {
+        type            fixedValue;
+        value           nonuniform 0();
+    }
+    outlet
+    {
+        type            pressureInletOutletVelocity;
+        value           nonuniform 0();
+    }
+    procBoundary2to1
+    {
+        type            processor;
+        value           uniform (4.62606e-13 -4.62606e-13 0.0534268);
+    }
+    procBoundary2to3
+    {
+        type            processor;
+        value           uniform (3.86161e-13 -3.86161e-13 0.0662399);
+    }
+}
+
+
+// ************************************************************************* //

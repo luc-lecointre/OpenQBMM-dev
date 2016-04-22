@@ -2,7 +2,7 @@
 # Reads value from a specified cell and writes it with its variable name
 
 #echo "//Initial values" > 0/initC
-time="../combustion/0.23.flow"
+time="../combustion/0.1.pbe"
 dir=$(pwd)/0
 
 init()
@@ -16,7 +16,7 @@ init()
                 cd $dir
                 cp O2 $filename
                 sed -i "27s/.*/$message/" $filename
-                cd ../../combustion/0.23.flow
+                cd ../../combustion/0.1.pbe
             fi                    
         fi 
     done 

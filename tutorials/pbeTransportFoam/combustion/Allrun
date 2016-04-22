@@ -7,23 +7,24 @@ cd ${0%/*} || exit 1    # Run from this directory
 mkdir 0 2>&1
 cp 0.org/* 0/ 2>&1
 
-#cp -f system/controlDict.flow system/controlDict
-#cp -f constant/thermophysicalProperties.flow constant/thermophysicalProperties
-#runApplication blockMesh
-#decomposePar
-#mpirun -np 8 reactingFoam -parallel
-#runApplication reconstructPar -latestTime
+cp -f system/controlDict.flow system/controlDict
+cp -f constant/thermophysicalProperties.flow constant/thermophysicalProperties
+cp -f system/fvSchemes.flow system/fvSchemes
+runApplication blockMesh
+decomposePar
+mpirun -np 8 reactingFoam -parallel
+runApplication reconstructPar -latestTime
 
-#mv -f processor* combustion/
-
-mv 0.23 0.23.flow
-cp -f 0.23.flow/* 0/ 2>&1
+mv processor* combustion/
+mv 0.2 0.2.flow
+cp -f 0.2.flow/* 0/ 2>&1
 cp -f system/controlDict.pbe system/controlDict
 cp -f constant/thermophysicalProperties.pbe constant/thermophysicalProperties
+cp -f system/fvSchemes.pbe system/fvSchemes
 
-runApplication pbeTransportFoam
-#decomposePar 
-#mpirun -np 8 pbeTransportFoam -parallel
+decomposePar 
+mpirun -np 8 pbeTransportFoam -parallel
 
-#runApplication reconstructPar -latestTime
+runApplication reconstructPar -latestTime
+mv 0.1 0.1.pbe
 # ----------------------------------------------------------------- end-of-file

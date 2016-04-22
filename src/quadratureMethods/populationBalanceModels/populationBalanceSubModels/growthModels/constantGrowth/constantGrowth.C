@@ -52,10 +52,11 @@ namespace growthModels
 Foam::populationBalanceSubModels::growthModels::constantGrowth
 ::constantGrowth
 (
-    const dictionary& dict
+    const dictionary& dict,
+    const fvMesh& mesh
 )
 :
-    growthModel(dict),
+    growthModel(dict, mesh),
     minAbscissa_(dict.lookupOrDefault("minAbscissa", 1e-10)),
     maxAbscissa_(dict.lookupOrDefault("maxAbscissa", 1e10))
 {}

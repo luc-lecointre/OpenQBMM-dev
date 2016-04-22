@@ -57,8 +57,8 @@ Foam::populationBalanceSubModels::oxidationModels::reduction::reduction
     const fvMesh& mesh
 )
 :
-    oxidationModel(dict, mesh),
-    cRed_(readScalar(dict.lookup("cRed")))
+    oxidationModel(dict, mesh)
+    //cRed_(readScalar(dict.lookup("cRed")))
 {
 }
 
@@ -70,26 +70,46 @@ Foam::populationBalanceSubModels::oxidationModels::reduction::~reduction()
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+Foam::scalar Foam::populationBalanceSubModels::oxidationModels::reduction
+::cRed(const label& cellI)
+{
+    const volScalarField& T = mesh_.lookupObject<volScalarField>("T");
+    
+    scalar dCarbon = 2.365e-10;
+    
+    //scalar kReaction = ArrheniusReactionRate(2.20e12,0.0,31.38);
+    
+    scalar kReaction = 2.20e12*exp(-31.38/(8.314*T[cellI])); //reaction : Soot* + O2 -> Soot-H + 2CO + arrhenius law
+    
+    return 2*dCarbon*kReaction*1.7e19;
+    
+    
+}
+
 Foam::scalar
 Foam::populationBalanceSubModels::oxidationModels::reduction
 ::characteristic(const label& cellI) 
 {
-    const volScalarField& concentration(mesh_.lookupObject<volScalarField>("OH"));
+    const volScalarField& concentration_O2(mesh_.lookupObject<volScalarField>("O2"));
+    
+    //const volScalarField& concentration_OH(mesh_.lookupObject<volScalarField>("OH"));
     
     const volScalarField& rho = mesh_.lookupObject<volScalarField>("rho");
     
-    return (cRed_*concentration[cellI]*mesh_.time().deltaT().value()*rho[cellI]/3);
+    return (cRed(cellI)*concentration_O2[cellI]*mesh_.time().deltaT().value()*rho[cellI]/3);
 }
 
 Foam::scalar
 Foam::populationBalanceSubModels::oxidationModels::reduction
 ::characteristic(const scalar& abscissa, const label& cellI) 
 {
-    const volScalarField& concentration(mesh_.lookupObject<volScalarField>("OH"));
+    const volScalarField& concentration_O2(mesh_.lookupObject<volScalarField>("O2")); //use of pointeurs to avoid to reconstruct each times ???
+    
+    //const volScalarField& concentration_OH(mesh_.lookupObject<volScalarField>("OH"));
     
     const volScalarField& rho = mesh_.lookupObject<volScalarField>("rho");
     
-    return (abscissa - cRed_*concentration[cellI]*rho[cellI]*mesh_.time().deltaT().value()/3);
+    return (abscissa - cRed(cellI)*concentration_O2[cellI]*rho[cellI]*mesh_.time().deltaT().value()/3);
     
 }
 

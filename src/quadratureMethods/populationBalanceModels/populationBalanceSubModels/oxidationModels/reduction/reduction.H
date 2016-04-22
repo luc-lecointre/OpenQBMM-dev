@@ -55,15 +55,11 @@ class reduction
     public oxidationModel
 {
 private:
-
-    // Private data
-
-
-        //- reduction constant
-        scalar cRed_;
-
-        //- Soot density
-        dimensionedScalar rhoSoot_;
+        
+    // Functions
+        
+        //-constant reduction
+        scalar cRed( const label& cellI );
         
 
 public:

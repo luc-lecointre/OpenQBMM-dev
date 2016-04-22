@@ -88,7 +88,8 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
     (
         Foam::populationBalanceSubModels::growthModel::New
         (
-            dict.subDict("growthModel")
+            dict.subDict("growthModel"),
+            U.mesh()
         )
     ),
     oxidationModel_
@@ -221,7 +222,7 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
         }
     }
     
-    //Info << "aggregationSource : "<< aggregationSource.dimensions() << endl;
+    Info << "aggregationSource : "<< aggregationSource << endl;
     
     return aSource;
 }

@@ -61,13 +61,22 @@ class Fuchs
 {
 private :
     
+    //- Molecular mass of one carbon atom
+    dimensionedScalar MCarbon_;
+    
     //- fractal dimension depending of flame configuration
     scalar df_;
         
     //- mean free path of molecule
     dimensionedScalar lambdaf_;
-        
-    //- volume of particule after nucleation
+
+    //- Number of carbon atoms in PAM species
+    label nCarbonSoot_;
+    
+    //- density of soot
+    dimensionedScalar rhoSoot_;
+    
+    //- abscissa nucleation
     dimensionedScalar abscissa0_;
     
     //functions

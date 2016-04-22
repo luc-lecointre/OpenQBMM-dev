@@ -68,8 +68,12 @@ protected:
 
         const dictionary& dict_;
 
+        //- Reference to mesh
+        const fvMesh& mesh_;
+        
         //- Coefficient of aggregation kernel
         const dimensionedScalar Cg_;
+        
 
 
 public:
@@ -84,23 +88,29 @@ public:
         growthModel,
         dictionary,
         (
-            const dictionary& dict
+            const dictionary& dict,
+            const fvMesh& mesh
         ),
-        (dict)
+        (dict, mesh)
     );
 
 
     // Constructors
 
         //- Construct from components
-        growthModel(const dictionary& dict);
+        growthModel
+        (
+            const dictionary& dict,
+            const fvMesh& mesh
+        );
 
 
     // Selectors
 
         static autoPtr<growthModel> New
         (
-            const dictionary& dict
+            const dictionary& dict,
+            const fvMesh& mesh
         );
 
 
