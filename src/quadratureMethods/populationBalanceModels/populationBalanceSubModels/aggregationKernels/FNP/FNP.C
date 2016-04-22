@@ -190,7 +190,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
                /pow((Ccor_p + Ccor_i)*siteVol_.value(), 3.0/4.0);
                 
             scalar L = sqr(Rcor_p + Rcor_i)/Chi;
-            scalar N = nb_/pow(Chi/pow(siteVol_, 1.0/3.0), 5.0/3.0);
+            scalar N = nb_/pow(Chi/pow(siteVol_.value(), 1.0/3.0), 5.0/3.0);
             
             scalar Dfus =
                 Foam::constant::physicoChemical::k.value()*T
