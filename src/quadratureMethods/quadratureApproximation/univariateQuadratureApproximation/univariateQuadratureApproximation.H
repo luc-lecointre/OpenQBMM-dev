@@ -131,7 +131,13 @@ public:
 
             //- Return the nodes
             inline const PtrList<extendedVolScalarNode>& nodes() const;
-
+            
+            //-Return the momentInverter
+            inline const autoPtr<extendedMomentInversion>& momentInverter() const
+            {
+                return momentInverter_;
+            }
+            
             //- Const access to the moments
             inline const volUnivariateMomentFieldSet& moments() const;
 

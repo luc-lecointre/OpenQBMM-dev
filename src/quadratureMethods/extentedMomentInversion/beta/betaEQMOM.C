@@ -361,4 +361,17 @@ Foam::scalar Foam::betaEQMOM::sigmaMax(univariateMomentSet& moments)
     return p2/(1.0 - p2);
 }
 
+Foam::scalar Foam::betaEQMOM::distribution
+(
+    const scalar& abscissa,
+    const scalar& primaryAbscissa,
+    const scalar& sigma
+) const
+{
+    scalar alpha = (1.0 - primaryAbscissa)/sigma;
+    scalar beta = primaryAbscissa/sigma; 
+    
+    return pow(abscissa,beta - 1.0)*pow(1-abscissa,alpha - 1.0)*gamma(alpha+beta)/(gamma(alpha)*gamma(beta));
+}
+
 // ************************************************************************* //

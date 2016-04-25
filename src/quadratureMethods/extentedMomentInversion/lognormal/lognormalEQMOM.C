@@ -166,4 +166,14 @@ Foam::scalar Foam::lognormalEQMOM::sigmaMax(univariateMomentSet& moments)
     return sigmaZeta1;
 }
 
+Foam::scalar Foam::lognormalEQMOM::distribution
+(
+    const scalar& abscissa,
+    const scalar& primaryAbscissa,
+    const scalar& sigma
+) const
+{
+    return 1.0/(abscissa*sigma*sqrt(2*Foam::constant::mathematical::pi))*exp(-(log(abscissa)-log(primaryAbscissa))/(2.0*sqr(sigma)));
+}
+
 // ************************************************************************* //

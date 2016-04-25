@@ -283,4 +283,16 @@ Foam::scalar Foam::gammaEQMOM::sigmaMax(univariateMomentSet& moments)
     return sigmaZeta1;//min(sigmaZeta1, sigmaZeta2);
 }
 
+Foam::scalar Foam::gammaEQMOM::distribution
+(
+    const scalar& abscissa,
+    const scalar& primaryAbscissa,
+    const scalar& sigma
+) const
+{
+    scalar alpha = primaryAbscissa/sigma;
+    
+    return pow(abscissa,alpha-1.0)*exp(-abscissa/sigma)/(gamma(alpha)*pow(sigma,alpha));
+}
+
 // ************************************************************************* //

@@ -156,7 +156,6 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solve()
           ==
             momentSource(m)
           + phaseSpaceConvection(m)
-          //+ oxidationSpaceConvection(m)
         ); 
 
         //momentEqn.relax();

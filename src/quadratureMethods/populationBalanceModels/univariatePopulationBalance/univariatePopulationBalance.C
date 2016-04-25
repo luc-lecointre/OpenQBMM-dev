@@ -61,8 +61,7 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
     name_(name),
     aggregation_(dict.lookup("aggregation")),
     breakup_(dict.lookup("breakup")),
-    growth_(dict.lookup("growth")),
-    oxidation_(dict.lookup("oxidation")),
+    convection_(dict.lookup("convection")),
     aggregationKernel_
     (
         Foam::populationBalanceSubModels::aggregationKernel::New
@@ -84,19 +83,11 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
             dict.subDict("daughterDistribution")
         )
     ),
-    growthModel_
+    convectionModel_
     (
-        Foam::populationBalanceSubModels::growthModel::New
+        Foam::populationBalanceSubModels::convectionModel::New
         (
-            dict.subDict("growthModel"),
-            U.mesh()
-        )
-    ),
-    oxidationModel_
-    (
-        Foam::populationBalanceSubModels::oxidationModel::New
-        (
-            dict.subDict("oxidationModel"),
+            dict.subDict("convectionModel"),
             U.mesh()
         )
     ),
@@ -298,7 +289,7 @@ Foam::tmp<fvScalarMatrix> Foam::PDFTransportModels::populationBalanceModels
     return diffusionModel_->momentDiff(moment);
 }
 
-Foam::tmp<Foam::volScalarField>
+/*Foam::tmp<Foam::volScalarField>
 Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
 ::phaseSpaceConvection
 (
@@ -358,21 +349,21 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
     }
 
     return gSource;
-}
+}*/
 
 Foam::tmp<Foam::volScalarField>
-Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance::oxidationSpaceConvection
+Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance::phaseSpaceConvection
 (
     const volUnivariateMoment& moment
 )
 {
-    tmp<volScalarField> oxidationMoment
+    tmp<volScalarField> convectionMoment
     (
         new volScalarField
         (
             IOobject
             (
-                "oxiMoment",
+                "convectionMoment",
                 U_.mesh().time().timeName(),
                 U_.mesh(),
                 IOobject::NO_READ,
@@ -384,23 +375,23 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance::
         )
     );
     
-    if (!oxidation_)
+    if (!convection_)
     {
-        oxidationMoment.ref().dimensions().reset(moment.dimensions()/dimTime);
+        convectionMoment.ref().dimensions().reset(moment.dimensions()/dimTime);
 
-        return oxidationMoment;
+        return convectionMoment;
     }
 
     label order = moment.order();
 
     if (order < 1)
     {
-        oxidationMoment.ref().dimensions().reset(moment.dimensions()/dimTime);
+        convectionMoment.ref().dimensions().reset(moment.dimensions()/dimTime);
 
-        return oxidationMoment;
+        return convectionMoment;
     }
     
-    volScalarField& oxiMoment = oxidationMoment.ref();
+    volScalarField& cMoment = convectionMoment.ref();
     
     label N2 = quadrature_.nMoments()+1;
     
@@ -418,28 +409,42 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance::
                 {
                     scalar m = node.primaryWeight()[cellI]
                         *node.secondaryWeights()[sNodeI][cellI]
-                        *pow(node.secondaryAbscissae()[sNodeI][cellI]+oxidationModel_->characteristic(cellI),mI);
+                        *pow(node.secondaryAbscissae()[sNodeI][cellI],mI);
                     
                     mSet[mI] = mSet[mI] + m;
                 }
+            
+                scalar characteristic = convectionModel_->characteristic(cellI);
+                scalar primaryAbscissa = node.primaryAbscissa()[cellI];
+                scalar sigma = quadrature_.momentInverter()->sigma();
+                
+                scalar m = characteristic/2.0*
+                    (128.0/225.0*quadrature_.momentInverter()->distribution(characteristic/2.0,primaryAbscissa,sigma)
+                    + ((322.0+13.0*sqrt(70.0))/900.0)*
+                    (quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0+1.0/3.0*sqrt(5.0-2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma)
+                    +quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0-1.0/3.0*sqrt(5.0-2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma))
+                    + ((322.0-13.0*sqrt(70.0))/900.0)*
+                    (quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0+1.0/3.0*sqrt(5.0+2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma)
+                    +quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0-1.0/3.0*sqrt(5.0+2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma)));
+                
+                mSet[mI] = mSet[mI] - node.primaryWeight()[cellI]*m;
             }
         }
+        
         mSet.invert();
         
         forAll (mSet.weights(),I)
         {
-            scalar oxi = mSet.weights()[I]
-                *pow(oxidationModel_->characteristic(mSet.abscissae()[I],cellI),order)/U_.mesh().time().deltaT().value();
+            scalar conv = mSet.weights()[I]
+                *pow(convectionModel_->characteristic(mSet.abscissae()[I],cellI),order)/U_.mesh().time().deltaT().value();
         
-            oxiMoment[cellI] = oxiMoment[cellI] + oxi;
+            cMoment[cellI] = cMoment[cellI] + conv;
         }
     }
     
-    oxidationMoment.ref().dimensions().reset(moment.dimensions()/dimTime);
+    cMoment.dimensions().reset(moment.dimensions()/dimTime);
     
-    Info << "oxidation dimension :" << oxidationMoment.ref().dimensions() << endl;
-    
-    return oxidationMoment;
+    return convectionMoment;
 }
 
 Foam::tmp<Foam::fvScalarMatrix>

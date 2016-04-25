@@ -126,6 +126,14 @@ public:
 
     //- Compute maximum value of sigma to ensure realizability
     virtual scalar sigmaMax(univariateMomentSet& moments);
+    
+    //-Return the value of the distribution at one point
+    virtual scalar distribution
+    (
+        const scalar& abscissa,
+        const scalar& primaryAbscissa,
+        const scalar& sigma
+    ) const;
 };
 
 

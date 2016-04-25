@@ -224,7 +224,6 @@ protected:
             univariateMomentSet& moments
         ) = 0;
 
-
 public:
 
     //- Runtime type information
@@ -275,6 +274,13 @@ public:
 
         //- Invert moments to find weight, abscissae and sigma
         void invert(const univariateMomentSet& moments);
+        
+        virtual scalar distribution
+        (
+            const scalar& abscissa,
+            const scalar& primaryAbscissa,
+            const scalar& sigma
+        ) const = 0;
         
         //- Return number of moments
         inline label nMoments()

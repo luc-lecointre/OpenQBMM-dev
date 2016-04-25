@@ -41,10 +41,9 @@ SourceFiles
 #include "aggregationKernel.H"
 #include "breakupKernel.H"
 #include "daughterDistribution.H"
-#include "growthModel.H"
 #include "diffusionModel.H"
 #include "nucleationModel.H"
-#include "oxidationModel.H"
+#include "convectionModel.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -74,11 +73,8 @@ class univariatePopulationBalance
         //- Switch indicating the status of the breakup model
         Switch breakup_;
 
-        //- Switch indicating the status of the growth model
-        Switch growth_;
-        
-        //- Switch indicating the status of the oxidation model
-        Switch oxidation_;
+        //- Switch indicating the status of the convection model
+        Switch convection_;
 
         //- Aggregation kernel model
         autoPtr
@@ -97,18 +93,12 @@ class univariatePopulationBalance
         <
             Foam::populationBalanceSubModels::daughterDistribution
         > daughterDistribution_;
-
-        //- Growth model function
-        autoPtr
-        <
-            Foam::populationBalanceSubModels::growthModel
-        > growthModel_;
         
-        //- Oxidation model function
+        //- Phase convection model function
         autoPtr
         <
-            Foam::populationBalanceSubModels::oxidationModel
-        > oxidationModel_;
+            Foam::populationBalanceSubModels::convectionModel
+        > convectionModel_;
 
         //- Diffusion model
         autoPtr
@@ -140,12 +130,6 @@ class univariatePopulationBalance
 
         //- Convect moments in phase space
         virtual tmp<volScalarField> phaseSpaceConvection
-        (
-            const volUnivariateMoment& moment
-        );
-        
-        //- Convect moments in phase space with oxidation
-        virtual tmp<volScalarField> oxidationSpaceConvection
         (
             const volUnivariateMoment& moment
         );

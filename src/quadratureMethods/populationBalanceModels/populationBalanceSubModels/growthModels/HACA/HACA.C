@@ -88,7 +88,7 @@ Foam::populationBalanceSubModels::growthModels::HACA::Arrhenius
     tmp<volScalarField> Arrhenius =
         A*pow(T,n)*exp(-E/(8.314*T));
     
-    Arrhenius.ref().dimensions().reset(inv(dimTime));
+    Arrhenius.ref().dimensions().reset(dimensionSet(0,3,-1,0,-1,0,0));
     
     return Arrhenius;
 }
@@ -140,7 +140,11 @@ Foam::populationBalanceSubModels::growthModels::HACA::r
         0.026
     );
     
-    return Arrhenius(1e8,1.80,68.42,T)*concentration_H*rho/MH+Arrhenius(8.68e4,2.36,25.46,T)*concentration_OH*rho/MOH+Arrhenius(1.13e16,-0.06,476.05,T)/(Arrhenius(8.68e4,2.36,25.46,T)*concentration_H2*rho/MH2+Arrhenius(6.44e-1,3.79,27.96,T)*concentration_H2O*rho/MH2O+Arrhenius(4.17e13,0.15,0.00,T)*concentration_H*rho/MH+Arrhenius(2.52e9,1.10,17.13,T)*concentration_C2H2*rho/MC2H2);
+    Foam::tmp<Foam::volScalarField> r = Arrhenius(1e8,1.80,68.42,T)*concentration_H*rho/MH+Arrhenius(8.68e4,2.36,25.46,T)*concentration_OH*rho/MOH+Arrhenius(1.13e16,-0.06,476.05,T)/(Arrhenius(8.68e4,2.36,25.46,T)*concentration_H2*rho/MH2+Arrhenius(6.44e-1,3.79,27.96,T)*concentration_H2O*rho/MH2O+Arrhenius(4.17e13,0.15,0.00,T)*concentration_H*rho/MH+Arrhenius(2.52e9,1.10,17.13,T)*concentration_C2H2*rho/MC2H2);
+
+    r.ref().dimensions().reset(dimless);
+    
+    return r;
 }
 
 
@@ -169,8 +173,8 @@ Foam::populationBalanceSubModels::growthModels::HACA::Kg
     dimensionedScalar dCarbon
     (
         "dCarbon",
-        dimensionSet(0,5,0,0,0,0,0),
-        2.365e-10*1e-7
+        dimensionSet(0,1,0,0,0,0,0),
+        2.365e-10
     );
     
     return Arrhenius(2.52e9,1.10,17.13,flThermo.T())*concentration_C2H2*flThermo.rho()/MC2H2*2*dCarbon*abscissa*Xi*Foam::constant::physicoChemical::NA;

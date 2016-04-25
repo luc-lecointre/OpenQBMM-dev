@@ -7,20 +7,16 @@
 -------------------------------------------------------------------------------
 License
     This file is derivative work of OpenFOAM.
-
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-
     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
     for more details.
-
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
-
 \*---------------------------------------------------------------------------*/
 
 #include "Miller.H"
@@ -78,13 +74,12 @@ Foam::populationBalanceSubModels::nucleationModels::Miller::~Miller()
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-Foam::dimensionedScalar
+/*Foam::dimensionedScalar
 Foam::populationBalanceSubModels::nucleationModels::Miller
 ::volume(const scalar& nC)
 {
     return nC*MCarbon_/(rhoSoot_*Foam::constant::physicoChemical::NA); // [m^3]
 }
-
 Foam::volScalarField
 Foam::populationBalanceSubModels::nucleationModels::Miller
 ::Kfm(const scalar& nC) 
@@ -99,7 +94,6 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
         /(Foam::constant::mathematical::pi*rhoSoot_
         *Foam::constant::physicoChemical::NA), 2.0/3.0); // [m^3/s]
 }
-
 Foam::tmp<Foam::volScalarField>
 Foam::populationBalanceSubModels::nucleationModels::Miller
 ::dimerConcentration(const scalar& nC)
@@ -141,10 +135,10 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
     volScalarField jT = 0.5*Kfm(2*nCarbonPAH_)*sqr(Foam::constant::physicoChemical::NA*pahConcentration*flThermo.rho()/MPAH);
     
     return jT*pow(abscissaNucleation,moment.order());
-}
+}*/
 
 
-/*Foam::tmp<Foam::volScalarField>
+Foam::tmp<Foam::volScalarField>
 Foam::populationBalanceSubModels::nucleationModels::Miller
 ::nucleationSource(const volUnivariateMoment& moment) 
 {
@@ -179,6 +173,6 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
     //Info << "moment" << moment.order() << ":" << moment[0] << endl;
     
     return nucleationSource;
-}*/
+}
 
 // ************************************************************************* //

@@ -97,12 +97,6 @@ protected:
         (
             const volUnivariateMoment& moment
         ) = 0;
-        
-        //- Convect moments in phase space
-        virtual tmp<volScalarField> oxidationSpaceConvection
-        (
-            const volUnivariateMoment& moment
-        ) = 0;
 
         //- Calculate source terms
         virtual tmp<fvScalarMatrix> momentSource
