@@ -74,12 +74,13 @@ Foam::populationBalanceSubModels::nucleationModels::Miller::~Miller()
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-/*Foam::dimensionedScalar
+Foam::dimensionedScalar
 Foam::populationBalanceSubModels::nucleationModels::Miller
 ::volume(const scalar& nC)
 {
     return nC*MCarbon_/(rhoSoot_*Foam::constant::physicoChemical::NA); // [m^3]
 }
+
 Foam::volScalarField
 Foam::populationBalanceSubModels::nucleationModels::Miller
 ::Kfm(const scalar& nC) 
@@ -94,6 +95,7 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
         /(Foam::constant::mathematical::pi*rhoSoot_
         *Foam::constant::physicoChemical::NA), 2.0/3.0); // [m^3/s]
 }
+
 Foam::tmp<Foam::volScalarField>
 Foam::populationBalanceSubModels::nucleationModels::Miller
 ::dimerConcentration(const scalar& nC)
@@ -135,10 +137,10 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
     volScalarField jT = 0.5*Kfm(2*nCarbonPAH_)*sqr(Foam::constant::physicoChemical::NA*pahConcentration*flThermo.rho()/MPAH);
     
     return jT*pow(abscissaNucleation,moment.order());
-}*/
+}
 
 
-Foam::tmp<Foam::volScalarField>
+/*Foam::tmp<Foam::volScalarField>
 Foam::populationBalanceSubModels::nucleationModels::Miller
 ::nucleationSource(const volUnivariateMoment& moment) 
 {
@@ -154,7 +156,6 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
         Foam::dimensionSet(1,0,0,0,-1,0,0),
         0.202
     );
-
     tmp<volScalarField> nucleationSource = 4.4*sqrt(Foam::constant::mathematical::pi
         *Foam::constant::physicoChemical::k
         *flThermo.T()*Foam::constant::physicoChemical::NA
@@ -173,6 +174,6 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
     //Info << "moment" << moment.order() << ":" << moment[0] << endl;
     
     return nucleationSource;
-}
+}*/
 
 // ************************************************************************* //
