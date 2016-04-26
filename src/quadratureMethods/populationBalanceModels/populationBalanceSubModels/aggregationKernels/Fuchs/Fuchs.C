@@ -102,7 +102,7 @@ Foam::tmp<Foam::volScalarField> Foam::populationBalanceSubModels::aggregationKer
 {  
     const fluidThermo& flThermo = abscissa.mesh().lookupObject<fluidThermo>(basicThermo::dictName);
     
-    return Foam::constant::physicoChemical::k*flThermo.T()/(3.0*Foam::constant::mathematical::pi*flThermo.mu()*dc(abscissa))*(5.0+4.0*Kn(abscissa)+6.0*Kn(abscissa)*Kn(abscissa)+8.0*pow3(Kn(abscissa)))/(5.0-Kn(abscissa)+(8.0+Foam::constant::mathematical::pi)*Kn(abscissa)*Kn(abscissa));
+    return Foam::constant::physicoChemical::k*flThermo.T()/(3.0*Foam::constant::mathematical::pi*flThermo.mu()*dc(abscissa))*(5.0+4.0*Kn(abscissa)+6.0*sqr(Kn(abscissa))+8.0*pow3(Kn(abscissa)))/(5.0-Kn(abscissa)+(8.0+Foam::constant::mathematical::pi)*sqr(Kn(abscissa)));
 }
 
 Foam::tmp<Foam::volScalarField> Foam::populationBalanceSubModels::aggregationKernels::Fuchs::dc
@@ -183,7 +183,7 @@ Foam::tmp<Foam::volScalarField> Foam::populationBalanceSubModels::aggregationKer
     volScalarField a1=max(abscissa1,abscissa0_);
     volScalarField a2=max(abscissa2,abscissa0_);
     
-    tmp<volScalarField> aggregationKernel = 2.0*Foam::constant::mathematical::pi*(D(a1)+D(a2))*(dc(a1)+dc(a2))*pow((dc(a1)+dc(a2))/(dc(a1)+dc(a2)+2.0*sqrt(g(a1)*g(a1)+g(a2)*g(a2)))+8.0*(D(a1)+D(a2))/((dc(a1)+dc(a2))*sqrt(velocity(a1)*velocity(a1)+velocity(a2)*velocity(a2))),-1.0);
+    tmp<volScalarField> aggregationKernel = 2.0*Foam::constant::mathematical::pi*(D(a1)+D(a2))*(dc(a1)+dc(a2))*pow((dc(a1)+dc(a2))/(dc(a1)+dc(a2)+2.0*sqrt(sqr(g(a1))+sqr(g(a2))))+8.0*(D(a1)+D(a2))/((dc(a1)+dc(a2))*sqrt(sqr(velocity(a1))+sqr(velocity(a2)))),-1.0);
     
     return aggregationKernel;
 }

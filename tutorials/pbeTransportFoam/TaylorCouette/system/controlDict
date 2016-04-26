@@ -22,13 +22,13 @@ startTime       0;
 
 stopAt          endTime;
 
-endTime         5;
+endTime         5000;
 
-deltaT          1;
+deltaT          10;
 
 writeControl    adjustableRunTime;
 
-writeInterval   1;
+writeInterval   10;
 
 purgeWrite      10;
 
@@ -52,6 +52,41 @@ maxDeltaT       10;
 
 functions
 {  
+    probes
+    {
+        // Where to load it from
+        functionObjectLibs ( "libsampling.so" );
+
+        type            probes;
+
+        // Name of the directory for probe data
+        name            probes;
+
+        // Write at same frequency as fields
+        outputControl   timeStep;
+        outputInterval  1;
+
+        // Fields to be probed
+        fields
+        (
+            moment.0.populationBalance 
+            moment.1.populationBalance
+            moment.2.populationBalance
+            moment.3.populationBalance
+            moment.4.populationBalance
+            node0.populationBalance.abscissa
+            node1.populationBalance.abscissa
+            node0.populationBalance.weight
+            node1.populationBalance.weight
+            node1.populationBalance.sigma
+        );
+
+        probeLocations
+        (
+            ( 0.080 0.090 0 )        
+        );
+    }
+
     d43Average
     {
         functionObjectLibs ("libutilityFunctionObjects.so");
