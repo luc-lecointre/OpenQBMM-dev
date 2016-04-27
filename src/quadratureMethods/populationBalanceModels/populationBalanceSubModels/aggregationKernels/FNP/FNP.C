@@ -221,7 +221,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
     if (min(abscissa1).value() < 0 || min(abscissa2).value() < 0)
     {
         FatalErrorInFunction
-            << "zero or negative abscissa value."
+            << "Negative abscissa value."
             << abort(FatalError);
     }
     
@@ -237,27 +237,17 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
         
     const volScalarField& T = flThermo.T();
     
-    //const volScalarField& mixtureFraction =
-    //   abscissa1.mesh().lookupObject<IOobject>("mixtureFraction");
-    
     volScalarField mixtureFraction
     (
         IOobject
         (
             "mixtureFraction",
-            abscissa1.mesh().time().timeName(),
+            "0",
             abscissa1.mesh(),
-            IOobject::NO_READ,
-            IOobject::NO_WRITE,
-            false
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE
         ),
-        abscissa1.mesh(),
-        dimensionedScalar
-        (
-            "mixtureFraction",
-            dimless,
-            1.0
-        )
+        abscissa1.mesh()
     );
     
     tmp<volScalarField> betaKernel
@@ -330,7 +320,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
             }
         }
     }
-    return betaKernel*9.00e23*5.67e-7;
+    return betaKernel*9.00e23;//*5.67e-7;
     
 }
 
