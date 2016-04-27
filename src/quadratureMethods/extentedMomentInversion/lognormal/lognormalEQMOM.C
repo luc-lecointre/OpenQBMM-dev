@@ -173,15 +173,7 @@ Foam::scalar Foam::lognormalEQMOM::distribution
     const scalar& sigma
 ) const
 {
-    if (sigma==0)
-    {
-        if (abscissa==primaryAbscissa)
-            return 1;
-        else 
-            return 0;
-    }
-    else
-        return 1.0/(abscissa*sigma*sqrt(2*Foam::constant::mathematical::pi))*exp(-sqr(log(abscissa)-primaryAbscissa)/(2.0*sqr(sigma)));
+    return 1.0/(abscissa*sigma*sqrt(2*Foam::constant::mathematical::pi))*exp(-sqr(log(abscissa)-primaryAbscissa)/(2.0*sqr(sigma)));
 }
 
 // ************************************************************************* //

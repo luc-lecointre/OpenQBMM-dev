@@ -22,27 +22,28 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::populationBalanceSubModels::breakupKernels::AyaziShamlou
+    Foam::populationBalanceSubModels::breakupKernels::Mueller
 
 Description
     Breakup kernel for liquid-solid systems.
     
     Reference
     \verbatim
-        "Growth-independent breakage frequency of protein precipitates in 
-        turbulently agitated bioreactors"
-        P Ayazi Shamlou, S Stravrinides, N Titchener-Hooker, M Hoare
-        Chemical Engineering Science
-        Volume 49, Pages 2647-2656, 1994
+        "Theoretical model for drop and bubble breakup in turbulent dispersion"
+        H Luo, H F Svendsen 
+        AIChE Journal
+        Volume 42, Pages 1225-1233, 1996
     \endverbatim 
 
+    
+    
 SourceFiles
-    AyaziShamlou.C
+    Mueller.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef AyaziShamlou_H
-#define AyaziShamlou_H
+#ifndef Mueller_H
+#define Mueller_H
 
 #include "breakupKernel.H"
 
@@ -56,10 +57,10 @@ namespace breakupKernels
 {
 
 /*---------------------------------------------------------------------------*\
-                    Class AyaziShamlou Declaration
+                    Class Mueller Declaration
 \*---------------------------------------------------------------------------*/
 
-class AyaziShamlou
+class Mueller
 :
     public breakupKernel
 {
@@ -67,35 +68,23 @@ private:
     
     // Private data
 
-        //- Hamaker constant
-        dimensionedScalar A_;
-        
-        //- Fractal dimension of the aggregates
-        dimensionedScalar df_;
-        
-        //- Distance between primary particles
-        dimensionedScalar H0_;        
-        
-        //- Primary particle size
-        dimensionedScalar primarySize_;
+        //- Model coefficient
+        scalar Xi_;
     
 public:
 
         //- Runtime type information
-        TypeName("AyaziShamlou");
+        TypeName("Mueller");
 
 
     // Constructors
 
         //- Construct from components
-        AyaziShamlou
-        (
-            const dictionary& dict
-        );
+        Mueller(const dictionary& dict);
 
 
     //- Destructor
-    virtual ~AyaziShamlou();
+    virtual ~Mueller();
 
 
     // Member Functions

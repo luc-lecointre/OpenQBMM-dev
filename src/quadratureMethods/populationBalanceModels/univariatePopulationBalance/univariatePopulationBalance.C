@@ -201,6 +201,8 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
                               - pow(sAbscissa1, order)
                             )*aggregationKernel_->Ka(sAbscissa1, sAbscissa2)
                         );
+                        
+                    //Info << "aggregationKernel" << aggregationKernel_->Ka(sAbscissa1, sAbscissa2) << endl;
 
                     aggregationSource.dimensions().reset
                     (
@@ -213,7 +215,7 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
         }
     }
     
-    Info << "aggregationSource : "<< aggregationSource << endl;
+    //Info << "aggregationSource : "<< aggregationSource << endl;
     
     return aSource;
 }
@@ -427,16 +429,19 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance::
                     scalar sigma = quadrature_.momentInverter()->sigma();
                     //Info << "sigma : " << sigma << endl;
                     
-                    scalar m = characteristic/2.0*
-                        (128.0/225.0*quadrature_.momentInverter()->distribution(characteristic/2.0,primaryAbscissa,sigma)
-                        + ((322.0+13.0*sqrt(70.0))/900.0)*
-                        (quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0+1.0/3.0*sqrt(5.0-2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma)
-                        +quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0-1.0/3.0*sqrt(5.0-2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma))
-                        + ((322.0-13.0*sqrt(70.0))/900.0)*
-                        (quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0+1.0/3.0*sqrt(5.0+2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma)
-                        +quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0-1.0/3.0*sqrt(5.0+2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma)));
+                    if (sigma!=0)
+                    {
+                        scalar m = characteristic/2.0*
+                            (128.0/225.0*quadrature_.momentInverter()->distribution(characteristic/2.0,primaryAbscissa,sigma)
+                            + ((322.0+13.0*sqrt(70.0))/900.0)*
+                            (quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0+1.0/3.0*sqrt(5.0-2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma)
+                            +quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0-1.0/3.0*sqrt(5.0-2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma))
+                            + ((322.0-13.0*sqrt(70.0))/900.0)*
+                            (quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0+1.0/3.0*sqrt(5.0+2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma)
+                            +quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0-1.0/3.0*sqrt(5.0+2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma)));
                 
-                    mSet[mI] = mSet[mI] - node.primaryWeight()[cellI]*m;
+                        mSet[mI] = mSet[mI] - node.primaryWeight()[cellI]*m;
+                    }
                 
                     //Info << mSet[mI] << endl;
                 }
@@ -447,6 +452,7 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance::
         
             forAll (mSet.weights(),I)
             {
+                //Info << "intermediate abscissae : " << mSet.abscissae()[I] << endl;
                 scalar conv = mSet.weights()[I]
                     *pow(convectionModel_->characteristic(mSet.abscissae()[I],cellI),order);
                 //Info << "new abscissa : " << convectionModel_->characteristic(mSet.abscissae()[I],cellI) << endl;
@@ -460,6 +466,8 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance::
     cMoment = (cMoment - moment)/U_.mesh().time().deltaT().value();
     
     cMoment.dimensions().reset(moment.dimensions()/dimTime);
+    
+    //Info << "cMoment :" << cMoment << endl;
     
     return convectionMoment; 
 }

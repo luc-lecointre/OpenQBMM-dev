@@ -368,20 +368,10 @@ Foam::scalar Foam::betaEQMOM::distribution
     const scalar& sigma
 ) const
 {
-    if (sigma==0)
-    {
-        if (abscissa==primaryAbscissa)
-            return 1;
-        else 
-            return 0;
-    }
-    else
-    {
-        scalar alpha = (1.0 - primaryAbscissa)/sigma;
-        scalar beta = primaryAbscissa/sigma; 
+    scalar alpha = (1.0 - primaryAbscissa)/sigma;
+    scalar beta = primaryAbscissa/sigma; 
     
-        return pow(abscissa,beta - 1.0)*pow(1-abscissa,alpha - 1.0)*gamma(alpha+beta)/(gamma(alpha)*gamma(beta));
-    }
+    return pow(abscissa,beta - 1.0)*pow(1-abscissa,alpha - 1.0)*gamma(alpha+beta)/(gamma(alpha)*gamma(beta));
 }
 
 // ************************************************************************* //

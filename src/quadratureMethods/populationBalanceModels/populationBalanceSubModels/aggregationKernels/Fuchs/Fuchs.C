@@ -110,7 +110,7 @@ Foam::tmp<Foam::volScalarField> Foam::populationBalanceSubModels::aggregationKer
     const volScalarField& abscissa
 ) const
 {       
-    return abscissa*pow(abscissa/abscissa0_,3/df_);
+    return abscissa*pow(abscissa/abscissa0_,3.0/df_);
 }
 
 Foam::tmp<Foam::volScalarField> Foam::populationBalanceSubModels::aggregationKernels::Fuchs::velocity

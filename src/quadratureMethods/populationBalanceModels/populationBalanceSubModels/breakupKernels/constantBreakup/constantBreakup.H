@@ -72,7 +72,10 @@ public:
     // Constructors
 
         //- Construct from components
-        constantBreakup(const dictionary& dict);
+        constantBreakup
+        (
+            const dictionary& dict
+        );
 
 
     //- Destructor

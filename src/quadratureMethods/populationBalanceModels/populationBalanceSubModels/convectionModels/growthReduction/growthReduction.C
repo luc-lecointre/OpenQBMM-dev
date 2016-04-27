@@ -94,7 +94,7 @@ Foam::scalar Foam::populationBalanceSubModels::convectionModels::growthReduction
     
     scalar cRed = 2*VCarbon_*kReaction*Xi_*concentration_O2[cellI]*rho[cellI]/0.016;
 
-    //Info << "cRed : " << cRed << endl;
+    Info << "cRed : " << cRed << endl;
     //Info << "kReaction : " << kReaction << endl;
     return cRed;
 }
@@ -134,14 +134,14 @@ Foam::scalar
 Foam::populationBalanceSubModels::convectionModels::growthReduction
 ::characteristic(const label& cellI) 
 {
-    return (cRed(cellI)-cGro(cellI))/3.0*mesh_.time().deltaT().value();
+    return (cGro(cellI))/3.0*mesh_.time().deltaT().value();
 }
 
 Foam::scalar
 Foam::populationBalanceSubModels::convectionModels::growthReduction
 ::characteristic(const scalar& abscissa, const label& cellI) 
 {
-    return (abscissa - (cRed(cellI)-cGro(cellI))/3.0*mesh_.time().deltaT().value());
+    return (abscissa - (cGro(cellI))/3.0*mesh_.time().deltaT().value());
 }
 
 // ************************************************************************* //
