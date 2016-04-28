@@ -82,6 +82,12 @@ class turbulentMixing
         );
 
         //- Convect moments in phase space
+        virtual tmp<volScalarField> growthConvection
+        (
+            const volUnivariateMoment& moment
+        );
+        
+        //- Convect moments in phase space
         virtual tmp<volScalarField> phaseSpaceConvection
         (
             const volUnivariateMoment& moment

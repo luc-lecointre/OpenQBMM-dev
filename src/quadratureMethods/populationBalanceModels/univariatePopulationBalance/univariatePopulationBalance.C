@@ -61,6 +61,7 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
     name_(name),
     aggregation_(dict.lookup("aggregation")),
     breakup_(dict.lookup("breakup")),
+    growth_(dict.lookup("growth")),
     convection_(dict.lookup("convection")),
     aggregationKernel_
     (
@@ -81,6 +82,14 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
         Foam::populationBalanceSubModels::daughterDistribution::New
         (
             dict.subDict("daughterDistribution")
+        )
+    ),
+    growthModel_
+    (
+        Foam::populationBalanceSubModels::growthModel::New
+        (
+            dict.subDict("growthModel"),
+            U.mesh()
         )
     ),
     convectionModel_
@@ -291,9 +300,9 @@ Foam::tmp<fvScalarMatrix> Foam::PDFTransportModels::populationBalanceModels
     return diffusionModel_->momentDiff(moment);
 }
 
-/*Foam::tmp<Foam::volScalarField>
+Foam::tmp<Foam::volScalarField>
 Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
-::phaseSpaceConvection
+::growthConvection
 (
     const volUnivariateMoment& moment
 )
@@ -351,7 +360,7 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
     }
 
     return gSource;
-}*/
+}
 
 Foam::tmp<Foam::volScalarField>
 Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance::phaseSpaceConvection

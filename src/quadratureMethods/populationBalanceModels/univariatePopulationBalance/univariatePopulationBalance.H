@@ -42,6 +42,7 @@ SourceFiles
 #include "breakupKernel.H"
 #include "daughterDistribution.H"
 #include "diffusionModel.H"
+#include "growthModel.H"
 #include "nucleationModel.H"
 #include "convectionModel.H"
 
@@ -72,6 +73,9 @@ class univariatePopulationBalance
 
         //- Switch indicating the status of the breakup model
         Switch breakup_;
+        
+        //- Switch indicating the status of the growth model
+        Switch growth_;
 
         //- Switch indicating the status of the convection model
         Switch convection_;
@@ -93,6 +97,12 @@ class univariatePopulationBalance
         <
             Foam::populationBalanceSubModels::daughterDistribution
         > daughterDistribution_;
+        
+        //- growth model function
+        autoPtr
+        <
+            Foam::populationBalanceSubModels::growthModel
+        > growthModel_;
         
         //- Phase convection model function
         autoPtr
@@ -124,6 +134,12 @@ class univariatePopulationBalance
 
         //- Diffusion term
         virtual tmp<fvScalarMatrix> momentDiffusion
+        (
+            const volUnivariateMoment& moment
+        );
+        
+        //- Convect moments in phase space
+        virtual tmp<volScalarField> growthConvection
         (
             const volUnivariateMoment& moment
         );

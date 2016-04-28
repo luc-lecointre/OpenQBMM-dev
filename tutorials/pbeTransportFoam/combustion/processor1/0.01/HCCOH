@@ -1,0 +1,81 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0.01";
+    object      HCCOH;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 0 0 0 0];
+
+internalField   nonuniform List<scalar> 
+25
+(
+1.45981e-07
+1.28152e-07
+1.12369e-07
+9.83954e-08
+8.60275e-08
+7.50869e-08
+6.54153e-08
+5.68726e-08
+4.93346e-08
+4.26918e-08
+3.68374e-08
+3.17051e-08
+2.72018e-08
+2.32562e-08
+1.98181e-08
+1.68059e-08
+1.42163e-08
+1.19797e-08
+1.00442e-08
+8.39582e-09
+6.98999e-09
+5.79152e-09
+4.78379e-09
+3.92892e-09
+3.22043e-09
+)
+;
+
+boundaryField
+{
+    wall
+    {
+        type            zeroGradient;
+    }
+    fuel
+    {
+        type            fixedValue;
+        value           nonuniform 0();
+    }
+    outlet
+    {
+        type            inletOutlet;
+        inletValue      nonuniform 0();
+        value           nonuniform 0();
+    }
+    procBoundary1to0
+    {
+        type            processor;
+        value           uniform 1.66113e-07;
+    }
+    procBoundary1to2
+    {
+        type            processor;
+        value           uniform 2.62926e-09;
+    }
+}
+
+
+// ************************************************************************* //

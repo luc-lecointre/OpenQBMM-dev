@@ -60,9 +60,12 @@ private:
 
         //- Molecular mass of one carbon atom
         dimensionedScalar MCarbon_;
+        
+        //name of the PAH
+        string PAH_;
 
-        //- Number of carbon atoms in PAM species
-        label nCarbonPAH_;
+        //- Number of carbon atoms in PAH species
+        string nCarbonPAH_;
 
         //- Soot density
         dimensionedScalar rhoSoot_;
