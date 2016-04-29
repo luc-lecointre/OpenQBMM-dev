@@ -320,7 +320,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
             }
         }
     }
-    return betaKernel*9.00e23;//*5.67e-7;
+    return betaKernel;//*9.00e23;//*5.67e-7;
     
 }
 
