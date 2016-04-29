@@ -87,7 +87,7 @@ Foam::scalar Foam::populationBalanceSubModels::convectionModels::growthReduction
 {
     const volScalarField& T = mesh_.lookupObject<volScalarField>("T");
     
-    scalar kReaction = Arrhenius(2.20e6,0.0,31.38,T[cellI]); //reaction : Soot* + O2 -> Soot-H + 2CO + arrhenius law
+    scalar kReaction = Arrhenius(2.20e18,0.0,31.38,T[cellI]); //reaction : Soot* + O2 -> Soot-H + 2CO + arrhenius law
     
     const volScalarField& concentration_O2(mesh_.lookupObject<volScalarField>("O2"));
     const volScalarField& rho = mesh_.lookupObject<volScalarField>("rho");
@@ -120,10 +120,10 @@ Foam::scalar Foam::populationBalanceSubModels::convectionModels::growthReduction
     
     if (concentration_H[cellI]!=0)
     {
-        r = Arrhenius(1e2,1.80,68.42,T[cellI])*concentration_H[cellI]*rho[cellI]/0.001+Arrhenius(8.68e-2,2.36,25.46,T[cellI])*concentration_OH[cellI]*rho[cellI]/0.003+Arrhenius(1.13e13,-0.06,476.05,T[cellI])/(Arrhenius(8.68e-2,2.36,25.46,T[cellI])*concentration_H2[cellI]*rho[cellI]/0.002+Arrhenius(6.44e-7,3.79,27.96,T[cellI])*concentration_H2O[cellI]*rho[cellI]/0.01+Arrhenius(4.17e7,0.15,0.00,T[cellI])*concentration_H[cellI]*rho[cellI]/0.001+Arrhenius(2.52e3,1.10,17.13,T[cellI])*concentration_C2H2[cellI]*rho[cellI]/0.014);
+        r = Arrhenius(1e14,1.80,68.42,T[cellI])*concentration_H[cellI]*rho[cellI]/0.001+Arrhenius(8.68e10,2.36,25.46,T[cellI])*concentration_OH[cellI]*rho[cellI]/0.003+Arrhenius(1.13e25,-0.06,476.05,T[cellI])/(Arrhenius(8.68e10,2.36,25.46,T[cellI])*concentration_H2[cellI]*rho[cellI]/0.002+Arrhenius(6.44e9,3.79,27.96,T[cellI])*concentration_H2O[cellI]*rho[cellI]/0.01+Arrhenius(4.17e19,0.15,0.00,T[cellI])*concentration_H[cellI]*rho[cellI]/0.001+Arrhenius(2.52e15,1.10,17.13,T[cellI])*concentration_C2H2[cellI]*rho[cellI]/0.014);
     }
         
-    scalar cGro = 2*VCarbon_*r/(r+1)*concentration_C2H2[cellI]*Arrhenius(2.52e3,1.10,17.13,T[cellI])*rho[cellI]/0.014;
+    scalar cGro = 2*VCarbon_*r/(r+1)*concentration_C2H2[cellI]*Arrhenius(2.52e15,1.10,17.13,T[cellI])*rho[cellI]/0.014;
     
     //Info << "cGro : " << cGro << endl;
     
