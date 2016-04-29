@@ -58,8 +58,13 @@ Foam::populationBalanceSubModels::convectionModels::growthReduction::growthReduc
 )
 :
     convectionModel(dict, mesh),
-    VCarbon_(1.9e-30),
-    Xi_(readScalar(dict.lookup("Xi")))
+    VCarbon_(1.9e-3),
+    Xi_
+    (
+        "Xi",
+        Foam::dimensionSet(0,-2,0,0,0,0,0),
+        17
+    ),
 {
 }
 
@@ -87,7 +92,7 @@ Foam::scalar Foam::populationBalanceSubModels::convectionModels::growthReduction
 {
     const volScalarField& T = mesh_.lookupObject<volScalarField>("T");
     
-    scalar kReaction = Arrhenius(2.20e6,0.0,31.38,T[cellI]); //reaction : Soot* + O2 -> Soot-H + 2CO + arrhenius law
+    scalar kReaction = Arrhenius(2.20,0.0,31.38,T[cellI]); //reaction : Soot* + O2 -> Soot-H + 2CO + arrhenius law
     
     const volScalarField& concentration_O2(mesh_.lookupObject<volScalarField>("O2"));
     const volScalarField& rho = mesh_.lookupObject<volScalarField>("rho");

@@ -68,7 +68,7 @@ private :
     scalar df_;
         
     //- mean free path of molecule
-    dimensionedScalar lambdaf_;
+    //dimensionedScalar lambdaf_;
 
     //- Number of carbon atoms in PAM species
     label nCarbonSoot_;

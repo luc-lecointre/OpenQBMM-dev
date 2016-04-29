@@ -63,7 +63,11 @@ Foam::populationBalanceSubModels::nucleationModels::Miller::Miller
     ),
     PAH_(dict.lookup("PAH")),
     nCarbonPAH_(dict.lookup("nCarbonPAH")),
-    rhoSoot_(dict.lookup("rhoSoot"))
+    rhoSoot_(
+        "rhoSoot",
+        Foam::dimensionSet(1,-3,0,0,0,0,0),
+        1800.0e-27
+    )
 {
 }
 
@@ -79,7 +83,7 @@ Foam::dimensionedScalar
 Foam::populationBalanceSubModels::nucleationModels::Miller
 ::volume(const scalar& nC)
 {
-    return nC*MCarbon_/(rhoSoot_*Foam::constant::physicoChemical::NA); // [m^3]
+    return nC*MCarbon_/(rhoSoot_*Foam::constant::physicoChemical::NA); // [nm^3]
 }
 
 Foam::volScalarField
@@ -89,12 +93,12 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
     const fluidThermo& flThermo = mesh_.lookupObject<fluidThermo>(basicThermo::dictName);
     
     return 8.8*sqrt(Foam::constant::mathematical::pi
-        *Foam::constant::physicoChemical::k
+        *Foam::constant::physicoChemical::k*1e18
         *flThermo.T()*Foam::constant::physicoChemical::NA
         /(nC*MCarbon_))
         *pow(6.0*nC*MCarbon_
         /(Foam::constant::mathematical::pi*rhoSoot_
-        *Foam::constant::physicoChemical::NA), 2.0/3.0); // [m^3/s]
+        *Foam::constant::physicoChemical::NA), 2.0/3.0); // [nm^3/s]
 }
 
 Foam::tmp<Foam::volScalarField>
@@ -106,9 +110,9 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
     const volScalarField& pahConcentration(mesh_.lookupObject<volScalarField>(PAH_));
     
     volScalarField dimerSource = 0.5*Kfm(nC)*Foam::constant::physicoChemical::NA
-    *sqr(pahConcentration*flThermo.rho()/202.0); //[mol/(m^3*s)]
+    *sqr(pahConcentration*1e-27*flThermo.rho()/202.0); //[mol/(nm^3*s)]
     
-    volScalarField betaN = Kfm(2*nC)*Foam::constant::physicoChemical::NA; //[m^3/(s*mol)]
+    volScalarField betaN = Kfm(2*nC)*Foam::constant::physicoChemical::NA; //[nm^3/(s*mol)]
     
     dimensionedScalar MDimer (
         "dimerMolarMass",
@@ -170,7 +174,7 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
     
     forAll (tokens, specie)
     {
-        dimensionedScalar abscissaNucleation = pow(6.0/Foam::constant::mathematical::pi*volume(4*nCarbon[specie]),1.0/3.0); //[m]
+        dimensionedScalar abscissaNucleation = volume(4*nCarbon[specie]); //[nm^3]
         
         //Info << "abscissaNucleation" << tokens[specie] << " : " << abscissaNucleation.value() << endl;
         
