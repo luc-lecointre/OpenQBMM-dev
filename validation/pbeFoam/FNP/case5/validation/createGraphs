@@ -41,6 +41,7 @@ createEpsD43()
     openqbmmM2=$3
     openqbmmM3=$4
     openqbmmM4=$5
+    MATLAB=$6
 
     gnuplot<<EOF
     set terminal postscript eps enhanced color font 'Helvetica,24' linewidth 2
@@ -50,13 +51,16 @@ createEpsD43()
     set grid
     set key right top
     set logscale x
-    set size 1,1
+    set size 5,5
     plot \
-        '< paste $openqbmmM0 $openqbmmM1' using 1:(\$2/(3*\$4*\$4)) title "Moment.0", \
-        '< paste $openqbmmM1 $openqbmmM1' using 1:(\$2/(3*\$4*\$4)) title "Moment.1", \
-        '< paste $openqbmmM2 $openqbmmM1' using 1:(\$2/(3*\$4*\$4)) title "Moment.2", \
-        '< paste $openqbmmM3 $openqbmmM1' using 1:(\$2/(3*\$4*\$4)) title "Moment.3", \
-        '< paste $openqbmmM4 $openqbmmM1' using 1:(\$2/(3*\$4*\$4)) title "Moment.4", \
+        '< paste $openqbmmM0 $openqbmmM1' using 1:(\$2) every 50 title "Moment.0", \
+        '< paste $openqbmmM1 $openqbmmM1' using 1:(\$2) every 50 title "Moment.1", \
+        '< paste $openqbmmM2 $openqbmmM1' using 1:(\$2) every 50 title "Moment.2", \
+        '< paste $openqbmmM3 $openqbmmM1' using 1:(\$2) every 50 title "Moment.3", \
+        '$MATLAB' using 1:2 title "Moment.0 (QMOM)", \
+        '$MATLAB' using 1:3 title "Moment.1 (QMOM)", \
+        '$MATLAB' using 1:4 title "Moment.2 (QMOM)", \
+        '$MATLAB' using 1:5 title "Moment.3 (QMOM)" \
 
 
 EOF
@@ -80,8 +84,8 @@ fi
 # paths to data
 LATESTTIME=`ls $SETSDIR`
 OPENQBMMDATAROOT=$PROBESDIR/0
-VERIFICATIONDATAROOT=./verificationData
-VALIDATIONDATAROOT=./validationData
+VERIFICATIONDATAROOT="verificationData"
+VALIDATIONDATAROOT="validationData"
 
 echo "    processing d43 profile" > log.createGraphs 2>&1
 OPENQBMMM0="$OPENQBMMDATAROOT/moment.0.populationBalance"
@@ -89,8 +93,9 @@ OPENQBMMM1="$OPENQBMMDATAROOT/moment.1.populationBalance"
 OPENQBMMM2="$OPENQBMMDATAROOT/moment.2.populationBalance"
 OPENQBMMM3="$OPENQBMMDATAROOT/moment.3.populationBalance"
 OPENQBMMM4="$OPENQBMMDATAROOT/moment.4.populationBalance"
+MATLAB="$VALIDATIONDATAROOT/moments_matlab.txt"
 
-createEpsD43 $OPENQBMMM0 $OPENQBMMM1 $OPENQBMMM2 $OPENQBMMM3 $OPENQBMMM4
+createEpsD43 $OPENQBMMM0 $OPENQBMMM1 $OPENQBMMM2 $OPENQBMMM3 $OPENQBMMM4 $MATLAB
 
 echo Done
 

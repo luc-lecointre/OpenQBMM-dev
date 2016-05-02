@@ -47,7 +47,7 @@ Foam::PDFTransportModels::univariatePDFTransportModel
     RTol_(readScalar(dict.subDict("odeCoeffs").lookup("RTol"))),
     fac_(readScalar(dict.subDict("odeCoeffs").lookup("fac"))),
     facMin_(readScalar(dict.subDict("odeCoeffs").lookup("facMin"))),
-    facMax_(1.0),
+    facMax_(2.0),
     h_(facMin_*U.mesh().time().deltaT()),
     maxDeltaT_(false),
     quadrature_(name, mesh, support),
@@ -118,39 +118,8 @@ Foam::PDFTransportModels::univariatePDFTransportModel
 // * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * * //
 
 void Foam::PDFTransportModels::univariatePDFTransportModel
-::updatePhysicalSpaceConvection
-(
-    surfaceScalarField& phiOwn,
-    surfaceScalarField& phiNei
-)
+::updatePhysicalSpaceConvection()
 {
-    surfaceScalarField nei
-    (
-        IOobject
-        (
-            "nei",
-            mesh_.time().timeName(),
-            mesh_
-        ),
-        mesh_,
-        dimensionedScalar("nei", dimless, -1.0)
-    );
-
-    surfaceScalarField own
-    (
-        IOobject
-        (
-            "own",
-            mesh_.time().timeName(),
-            mesh_
-        ),
-        mesh_,
-        dimensionedScalar("own", dimless, 1.0)
-    );
-
-    phiOwn = fvc::interpolate(U_, own, "reconstruct(U)") & mesh_.Sf();
-    phiNei = fvc::interpolate(U_, nei, "reconstruct(U)") & mesh_.Sf();
-
     // Update interpolated nodes
     quadrature_.interpolateNodes();
 
@@ -162,12 +131,10 @@ void Foam::PDFTransportModels::univariatePDFTransportModel
 Foam::tmp<Foam::volScalarField>
 Foam::PDFTransportModels::univariatePDFTransportModel::physicalSpaceConvection
 (
-    const volUnivariateMoment& moment,
-    const surfaceScalarField& phiOwn,
-    const surfaceScalarField& phiNei
+    const volUnivariateMoment& moment
 )
 {
-    dimensionedScalar zeroPhi("zero", phiNei.dimensions(), 0.0);
+    dimensionedScalar zeroPhi("zero", phi_.dimensions(), 0.0);
 
     tmp<volScalarField> divMoment
     (
@@ -191,8 +158,8 @@ Foam::PDFTransportModels::univariatePDFTransportModel::physicalSpaceConvection
 
     surfaceScalarField mFlux
     (
-        quadrature_.momentsNei()[order]*min(phiNei, zeroPhi)
-      + quadrature_.momentsOwn()[order]*max(phiOwn, zeroPhi)
+        quadrature_.momentsNei()[order]*min(phi_, zeroPhi)
+      + quadrature_.momentsOwn()[order]*max(phi_, zeroPhi)
     );
 
     fvc::surfaceIntegrate(divMoment.ref(), mFlux);
@@ -448,10 +415,9 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
         {
             scalar sc = 
                 ATol_ + min(max(mag(momentsOld[mI]), mag(moments_[mI]))).value()*RTol_;
-            err += sqr(max((k1[mI] + k2[mI] - 2.0*k3[mI])/(3.0*sc)).value());
+            err += max(err, max(mag(k1[mI] + k2[mI] - 2.0*k3[mI])).value())/(3.0*sc);
         }
         
-        err = sqrt(err/quadrature_.nMoments());
         
         if (err == 0.0)
         {
@@ -461,7 +427,7 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
         
         else
         {
-            h_ = dt0*min(facMax_, max(facMin_, fac_/pow(err, 1.0/3.0)));
+            h_ = max(dt0*facMin_, h_*min(facMax_, fac_/pow(err, 1.0/3.0)));
         }
         
         if (dTime.value() >= dt0.value())
@@ -482,9 +448,7 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
 
 void Foam::PDFTransportModels::univariatePDFTransportModel::solve()
 {
-    surfaceScalarField phiOwn("phiOwn", fvc::interpolate(U_) & mesh_.Sf());
-    surfaceScalarField phiNei("phiNei", phiOwn);
-    updatePhysicalSpaceConvection(phiOwn, phiNei);
+    updatePhysicalSpaceConvection();
     
     solveMomentSource();
     
@@ -502,7 +466,7 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solve()
             new fvScalarMatrix
             (
                 fvm::ddt(m)
-              + physicalSpaceConvection(m, phiOwn, phiNei)
+              + physicalSpaceConvection(m)
               - momentDiffusion(m)
               ==
                 (moments_[mI] - m)/U_.mesh().time().deltaT()

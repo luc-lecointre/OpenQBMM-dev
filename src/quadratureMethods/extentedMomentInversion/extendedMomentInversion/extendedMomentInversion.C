@@ -76,7 +76,7 @@ void Foam::extendedMomentInversion::invert(const univariateMomentSet& moments)
     univariateMomentSet m(moments);
 
     reset();
-
+    
     // Terminate execution if negative number density is encountered
     if (m[0] < 0.0)
     {

@@ -109,8 +109,7 @@ class FNP
     (
         const scalar& p,
         const scalar& i,
-        const scalar& T,
-        const scalar& Xi
+        const scalar& T
     ) const;
         
     

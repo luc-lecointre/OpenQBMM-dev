@@ -192,10 +192,16 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
                             (
                                 0.5*pow // Birth
                                 (
+                                    sAbscissa1 + sAbscissa2,
+                                    order
+                                )
+                                /*(
                                     pow3(sAbscissa1) + pow3(sAbscissa2),
                                     order/3.0
                                 )
-                              - pow(sAbscissa1, order)
+                              - pow(sAbscissa1, order)*/
+                              - 0.5*(pow(sAbscissa1, order)
+                              + pow(sAbscissa2, order))
                             )*aggregationKernel_->Ka(sAbscissa1, sAbscissa2)
                         );
 
@@ -375,7 +381,6 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
             )
         )
     );
-
     mSource.ref() ==
         pos(-aggODE_)*aggregationSource(moment)
       + pos(-brkODE_)*breakupSource(moment)
@@ -414,7 +419,7 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
             )
         )
     );
-
+    
     mSource.ref() ==
         aggODE_*aggregationSource(moment)
       + brkODE_*breakupSource(moment)

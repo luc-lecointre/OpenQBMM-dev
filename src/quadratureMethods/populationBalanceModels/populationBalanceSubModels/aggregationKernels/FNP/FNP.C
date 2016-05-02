@@ -86,10 +86,9 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
 (
     const scalar& p,
     const scalar& i,
-    const scalar& T,
-    const scalar& mixtureFraction
+    const scalar& T
 ) const
-{   
+{
     // Free Coupling
     if (p == 1 && i == 1)
     {
@@ -102,8 +101,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
         scalar Rcoll = pow(p*na_*siteVol_.value(), 1.0/3.0);
         
         return
-            16.0*Foam::constant::mathematical::pi
-           *pos(mixtureFraction - Xip_).value()*D*Rcoll;
+            16.0*Foam::constant::mathematical::pi*D*Rcoll;
     }
     
     else
@@ -143,7 +141,6 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
             
             return
                  4.0*Foam::constant::mathematical::pi
-                *pos(mixtureFraction - Xip_).value()
                 *Ains*((D_p + D_i)*Dstar*(Rcoll_p + Rcoll_i)
                 *(Rcoll_p + Rcoll_i + Rcor_p)/(Dstar*(Rcoll_p + Rcoll_i) 
                + (D_p + D_i)*Rcor_p));
@@ -168,7 +165,6 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
             
             return
                  4.0*Foam::constant::mathematical::pi
-                *pos(mixtureFraction - Xip_).value()
                 *Ains*((D_p + D_i)*Dstar*(Rcoll_p + Rcoll_i)
                 *(Rcoll_p + Rcoll_i + Rcor_i)/(Dstar*(Rcoll_p + Rcoll_i) 
                + (D_p + D_i)*Rcor_i));
@@ -200,7 +196,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
             
             return
                  4.0*Foam::constant::mathematical::pi
-                *pos(mixtureFraction - Xip_).value()*Afus*((D_p + D_i)
+                *Afus*((D_p + D_i)
                 *Dfus*(Rcoll_p + Rcoll_i)*(Rcoll_p + Rcoll_i + Rcor_p + Rcor_i))
                 /(Dfus*(Rcoll_p + Rcoll_i) + (D_p + D_i)*(Rcor_p + Rcor_i));
         }
@@ -244,10 +240,11 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
             "mixtureFraction",
             "0",
             abscissa1.mesh(),
-            IOobject::MUST_READ,
+            IOobject::NO_READ,
             IOobject::NO_WRITE
         ),
-        abscissa1.mesh()
+        abscissa1.mesh(),
+        dimensionedScalar("mixtureFraction", dimless, 1.0)
     );
     
     tmp<volScalarField> betaKernel
@@ -275,7 +272,11 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
 
     forAll(abscissa1, cellI)
     {
-        if (abscissa1[cellI] != 0 && abscissa2[cellI] != 0)
+        if (mixtureFraction[cellI] < Xip_.value())
+        {
+            betaKernel.ref()[cellI] = scalar(0);
+        }
+        else if (abscissa1[cellI] != 0 && abscissa2[cellI] != 0)
         {
             scalar p = max(1.0, abscissa1[cellI]);
             scalar i = max(1.0, abscissa2[cellI]);
@@ -288,31 +289,31 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
             if(pLow == pHigh && iLow == iHigh)
             {
                 betaKernel.ref()[cellI] =
-                    beta(p,i, T[cellI], mixtureFraction[cellI]);
+                    beta(p,i, T[cellI]);
             }
             else if (pLow == pHigh)
             {
-                scalar BpLow = beta(p, iLow, T[cellI], mixtureFraction[cellI]);
-                scalar BpHigh = beta(p, iHigh, T[cellI], mixtureFraction[cellI]);
+                scalar BpLow = beta(p, iLow, T[cellI]);
+                scalar BpHigh = beta(p, iHigh, T[cellI]);
                 
                 betaKernel.ref()[cellI] = BpLow + (iHigh - i)
                    *(BpHigh - BpLow)/(iHigh - iLow);
             }
             else if (iLow == iHigh)
             {
-                scalar BiLow = beta(pLow, i, T[cellI], mixtureFraction[cellI]);
-                scalar BiHigh = beta(pHigh, i, T[cellI], mixtureFraction[cellI]);
+                scalar BiLow = beta(pLow, i, T[cellI]);
+                scalar BiHigh = beta(pHigh, i, T[cellI]);
                 
                 betaKernel.ref()[cellI] = BiLow + (pHigh - p)
                    *(BiHigh - BiLow)/(pHigh - pLow);
             }
             else
             {
-                scalar B11 = beta(pLow, iLow, T[cellI], mixtureFraction[cellI]);
-                scalar B12 = beta(pLow, iHigh, T[cellI], mixtureFraction[cellI]);
-                scalar B21 = beta(pHigh, iLow, T[cellI], mixtureFraction[cellI]);
-                scalar B22 = beta(pHigh, iHigh, T[cellI], mixtureFraction[cellI]);
-            
+                scalar B11 = beta(pLow, iLow, T[cellI]);
+                scalar B12 = beta(pLow, iHigh, T[cellI]);
+                scalar B21 = beta(pHigh, iLow, T[cellI]);
+                scalar B22 = beta(pHigh, iHigh, T[cellI]);
+                  
                 betaKernel.ref()[cellI] = 
                     (B11*(pHigh - p)*(iHigh - i) + B21*(p - pLow)*(iHigh - i)
                   + B12*(pHigh - p)*(i - iLow) + B22*(p - pLow)*(i - iLow))
@@ -320,7 +321,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
             }
         }
     }
-    return betaKernel;//*9.00e23;//*5.67e-7;
+    return betaKernel*9.00e23*5.67e-7;
     
 }
 
