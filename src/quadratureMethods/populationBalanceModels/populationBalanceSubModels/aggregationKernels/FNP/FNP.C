@@ -256,17 +256,11 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
                 "betaKernel",
                 abscissa1.mesh().time().timeName(),
                 abscissa1.mesh(),
-                IOobject::NO_READ,
+                IOobject::MUST_READ,
                 IOobject::NO_WRITE,
                 false
             ),
-            abscissa1.mesh(),
-            dimensionedScalar
-            (
-                "betaKernel",
-                pow3(abscissa1.dimensions())/dimTime,
-                0.0
-            )
+            abscissa1.mesh()
         )
     );
 
@@ -321,7 +315,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
             }
         }
     }
-    return betaKernel*9.00e23*5.67e-7;
+    return betaKernel*9.00e23;//*5.67e-7;
     
 }
 
