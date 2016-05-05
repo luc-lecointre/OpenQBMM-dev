@@ -41,6 +41,7 @@ Foam::PDFTransportModels::univariatePDFTransportModel
     PDFTransportModel(name, dict, mesh),
     name_(name),
     support_(support),
+    interfaceModel_(dict.lookup("interfaceModel")),
     ode_(dict.lookup("ode")),
     momentInverter_(),
     ATol_(readScalar(dict.subDict("odeCoeffs").lookup("ATol"))),
@@ -164,7 +165,7 @@ Foam::PDFTransportModels::univariatePDFTransportModel::physicalSpaceConvection
 
     fvc::surfaceIntegrate(divMoment.ref(), mFlux);
     divMoment.ref().dimensions().reset(moment.dimensions()/dimTime);
-
+    
     return divMoment;
 }
 
@@ -249,8 +250,111 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::updateQuadrature()
     moments_.update();
 }
 
+Foam::tmp<Foam::volScalarField>
+Foam::PDFTransportModels::univariatePDFTransportModel::interfaceSource
+(
+    const volUnivariateMoment& m
+)
+{
+    word order;
+    
+    forAll(m.cmptOrders(), dimi)
+    {
+        order += Foam::name(m.cmptOrders()[dimi]);
+    }
+    
+    tmp<volScalarField> iSource
+    (
+        new volScalarField
+        (
+            IOobject
+            (
+                "iSource",
+                m.mesh().time().timeName(),
+                m.mesh(),
+                IOobject::NO_READ,
+                IOobject::NO_WRITE,
+                false
+            ),
+            m.mesh(),
+            dimensionedScalar("iSource", m.dimensions()/dimTime, 0.0)
+        )
+    );
+    
+    if (!interfaceModel_)
+    {
+        return iSource;
+    }
+    
+    volScalarField& interSrc = iSource.ref();
+    
+    PtrList<volScalarField> P(2);
+    
+    forAll(P, nodei)
+    {
+        P.set
+        (
+            nodei,
+            volScalarField
+            (
+                m.mesh().lookupObject<volScalarField>
+                (
+                    "mixingWeights."
+                  + Foam::name(nodei)
+                )
+            )
+        );
+    }            
+        
+    typedef incompressible::turbulenceModel icoTurbModel;
+
+    const incompressible::turbulenceModel& turb =
+        m.mesh().lookupObject<icoTurbModel>
+        (
+            icoTurbModel::propertiesName
+        );
+
+    const volScalarField& Dt = turb.nut();
+    volScalarField gamma = 2.0*turb.epsilon()/turb.k(); // Cphi = 2.0
+    
+    if (name_ == "populationBalance2")
+    {
+        const volUnivariateMoment& m1 =
+            m.mesh().lookupObject<volUnivariateMoment>
+            (
+                "moment."
+                + order
+                + ".populationBalance1"
+            );
+        
+        const volUnivariateMoment& m2 = m;
+        
+        interSrc == gamma*P[0]*P[1]*(m1 - m2)
+          + Dt/(m2 - m1)*(P[0]*(fvc::grad(m1) & fvc::grad(m1))
+          + P[1]*(fvc::grad(m2) & fvc::grad(m2)));
+    }
+    else
+    {
+        const volUnivariateMoment& m1 = m;
+        const volUnivariateMoment& m2 =
+            m.mesh().lookupObject<volUnivariateMoment>
+            (
+                "moment."
+                + order
+                + ".populationBalance2"
+            );
+        interSrc == gamma*P[0]*P[1]*(m2 - m1)
+          + Dt/(m1 - m2)*(P[0]*(fvc::grad(m1) & fvc::grad(m1))
+          + P[1]*(fvc::grad(m2) & fvc::grad(m2)));
+    }
+    
+    return iSource;
+}
+
 void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
 {
+    Info<< "RK23-SSP: Solving for moment source terms" << endl;
+    
     // Read current deltaT
     dimensionedScalar dt0 = U_.mesh().time().deltaT();
     
@@ -409,15 +513,18 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
         updateQuadrature();
         
         // Calculate error
-        scalar err = 0.0;
+        scalar sc = 1.0;
+        scalar error = 0.0;
         
         forAll(moments_, mI)
         {
-            scalar sc = 
-                ATol_ + min(max(mag(momentsOld[mI]), mag(moments_[mI]))).value()*RTol_;
-            err += max(err, max(mag(k1[mI] + k2[mI] - 2.0*k3[mI])).value())/(3.0*sc);
+            sc = min(sc, ATol_
+              + min(max(mag(momentsOld[mI]), mag(moments_[mI]))).value()*RTol_);
+            
+            error = max(error, max(mag(k1[mI] + k2[mI] - 2.0*k3[mI])).value());
         }
         
+        scalar err = error/(3.0*sc);
         
         if (err == 0.0)
         {
@@ -427,13 +534,22 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
         
         else
         {
-            h_ = max(dt0*facMin_, h_*min(facMax_, fac_/pow(err, 1.0/3.0)));
+            h_ = dt0*min(facMax_, max(facMin_, fac_/pow(err, 1.0/3.0)));
         }
         
         if (dTime.value() >= dt0.value())
         {
             timeComplete = true;
         }
+        
+        // Write some stuff
+        Info<< "Iteration " << nItt 
+            << ", "
+            << "Residual = " << error
+            << ","
+            << "Local time = " << dTime.value() << "s"
+            << endl;
+            
     }
 
     if (h_.value() == dt0.value())
@@ -441,7 +557,6 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
         maxDeltaT_ = true;
     }
     
-    Info<< "RK23-SSP: Solving for moment source terms, No itterations " << nItt << endl;
     return;
 }
 
@@ -450,7 +565,10 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solve()
 {
     updatePhysicalSpaceConvection();
     
-    solveMomentSource();
+    if (ode_)
+    {
+        solveMomentSource();
+    }
     
     // List of moment transport equations
     PtrList<fvScalarMatrix> momentEqns(quadrature_.nMoments());
@@ -471,17 +589,19 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solve()
               ==
                 (moments_[mI] - m)/U_.mesh().time().deltaT()
               + momentSource(m)
+              + interfaceSource(m)
             )
         );
     }
 
-    forAll (momentEqns, mEqnI)
+    forAll(momentEqns, mEqni)
     {
-        momentEqns[mEqnI].relax();
-        momentEqns[mEqnI].solve();
+        momentEqns[mEqni].relax();
+        momentEqns[mEqni].solve();
     }
-
+    
     quadrature_.updateQuadrature();
+    
 }
 
 

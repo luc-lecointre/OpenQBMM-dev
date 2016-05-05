@@ -39,6 +39,9 @@ SourceFiles
 #include "PDFTransportModel.H"
 #include "univariateQuadratureApproximation.H"
 
+#include "turbulentFluidThermoModel.H"
+#include "turbulentTransportModel.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -61,6 +64,9 @@ class univariatePDFTransportModel
         
         //- Support
         const word support_;
+        
+        //- Switch for interface model
+        Switch interfaceModel_;
         
     // Variables for ODE solver
         Switch ode_;
@@ -134,6 +140,11 @@ protected:
         (
             const volUnivariateMoment& m 
         ) = 0;
+        
+        tmp<volScalarField> interfaceSource
+        (
+            const volUnivariateMoment& m
+        );
         
         //- Update local quadrature
         void updateQuadrature();

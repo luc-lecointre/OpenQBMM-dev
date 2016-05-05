@@ -428,6 +428,7 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
 
     return mSource;
 }
+
 void Foam::PDFTransportModels::populationBalanceModels
 ::univariatePopulationBalance::solve
 ()

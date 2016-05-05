@@ -160,8 +160,7 @@ class univariatePopulationBalance
         (
             const volUnivariateMoment& m 
         );
-
-
+        
 public:
 
     //- Runtime type information
