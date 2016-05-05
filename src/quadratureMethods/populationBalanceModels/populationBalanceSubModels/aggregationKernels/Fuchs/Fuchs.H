@@ -66,9 +66,6 @@ private :
     
     //- fractal dimension depending of flame configuration
     scalar df_;
-        
-    //- mean free path of molecule
-    //dimensionedScalar lambdaf_;
 
     //- Number of carbon atoms in PAM species
     label nCarbonSoot_;
@@ -80,32 +77,32 @@ private :
     dimensionedScalar abscissa0_;
     
     //functions
-    tmp<volScalarField> Kn
+    volScalarField Kn
     (
         const volScalarField& abscissa
     ) const;
     
-    tmp<volScalarField> D
+    volScalarField D
     (
         const volScalarField& abscissa
     ) const;
     
-    tmp<volScalarField> dc
+    volScalarField dc
     (
         const volScalarField& abscissa
     ) const;
     
-    tmp<volScalarField> velocity
+    volScalarField velocity
     (
         const volScalarField& abscissa
     ) const;
     
-    tmp<volScalarField> l
+    volScalarField l
     (
         const volScalarField& abscissa
     ) const;
     
-    tmp<volScalarField> g
+    volScalarField g
     (
         const volScalarField& abscissa
     ) const;

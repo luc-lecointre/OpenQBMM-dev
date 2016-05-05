@@ -211,7 +211,9 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
                             )*aggregationKernel_->Ka(sAbscissa1, sAbscissa2)
                         );
                         
-                    //Info << "aggregationKernel" << aggregationKernel_->Ka(sAbscissa1, sAbscissa2) << endl;
+                    //Info << "aggregationKernel" << aggregationKernel_->Ka(sAbscissa1, sAbscissa2).ref().dimensions() << endl;
+                    
+                    //Info << "sWeight1" << sWeight1.dimensions() << endl;
 
                     aggregationSource.dimensions().reset
                     (
@@ -431,7 +433,7 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance::
                 
                     //Info << mSet[mI] << endl;
             
-                    scalar characteristic = convectionModel_->characteristic(cellI);
+                    /*scalar characteristic = convectionModel_->characteristic(cellI);
                     //Info << "characteristic in 0 : " << characteristic << endl;
                     scalar primaryAbscissa = node.primaryAbscissa()[cellI];
                     //Info << "primaryAbscissa : " << primaryAbscissa << endl;
@@ -450,7 +452,7 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance::
                             +quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0-1.0/3.0*sqrt(5.0+2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma)));
                 
                         mSet[mI] = mSet[mI] - node.primaryWeight()[cellI]*m;
-                    }
+                    }*/
                 
                     //Info << mSet[mI] << endl;
                 }
@@ -497,7 +499,7 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
         )
     );
     
-    //Info << "ordre " << moment.order() << endl;
+    //Info << "aggregation :" << max(aggregationSource(moment).ref()) << endl;
     
     mSource.ref() +=
         aggregationSource(moment) + breakupSource(moment)

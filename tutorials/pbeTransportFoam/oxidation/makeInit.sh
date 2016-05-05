@@ -2,8 +2,10 @@
 # Reads value from a specified cell and writes it with its variable name
 
 #echo "//Initial values" > 0/initC
-time="../combustion/0.1.pbe"
+time=$(pwd)/../combustion/0.1.pbe
 dir=$(pwd)/0
+
+cp -f 0.org/* 0/
 
 init()
 {
@@ -14,12 +16,13 @@ init()
             then
                 message=`head -122 $filename | echo "        value           uniform "$(tail -1)";"`
                 cd $dir
-                cp O2 $filename
+                cp Ydefault $filename
                 sed -i "27s/.*/$message/" $filename
                 cd ../../combustion/0.1.pbe
             fi                    
         fi 
     done 
 }
+
 
 (cd $time && init)

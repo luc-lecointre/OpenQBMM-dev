@@ -66,7 +66,7 @@ Foam::populationBalanceSubModels::nucleationModels::Miller::Miller
     rhoSoot_(
         "rhoSoot",
         Foam::dimensionSet(1,-3,0,0,0,0,0),
-        1800.0e-27
+        1800.0
     )
 {
 }
@@ -83,7 +83,7 @@ Foam::dimensionedScalar
 Foam::populationBalanceSubModels::nucleationModels::Miller
 ::volume(const scalar& nC)
 {
-    return nC*MCarbon_/(rhoSoot_*Foam::constant::physicoChemical::NA); // [nm^3]
+    return nC*MCarbon_/(rhoSoot_*Foam::constant::physicoChemical::NA)*1.0e27; // [nm^3]
 }
 
 Foam::volScalarField
@@ -93,12 +93,12 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
     const fluidThermo& flThermo = mesh_.lookupObject<fluidThermo>(basicThermo::dictName);
     
     return 8.8*sqrt(Foam::constant::mathematical::pi
-        *Foam::constant::physicoChemical::k*1e18
+        *Foam::constant::physicoChemical::k
         *flThermo.T()*Foam::constant::physicoChemical::NA
         /(nC*MCarbon_))
         *pow(6.0*nC*MCarbon_
         /(Foam::constant::mathematical::pi*rhoSoot_
-        *Foam::constant::physicoChemical::NA), 2.0/3.0); // [nm^3/s]
+        *Foam::constant::physicoChemical::NA), 2.0/3.0); // [m^3/s]
 }
 
 Foam::tmp<Foam::volScalarField>
@@ -110,9 +110,9 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
     const volScalarField& pahConcentration(mesh_.lookupObject<volScalarField>(PAH_));
     
     volScalarField dimerSource = 0.5*Kfm(nC)*Foam::constant::physicoChemical::NA
-    *sqr(pahConcentration*1e-27*flThermo.rho()/202.0); //[mol/(nm^3*s)]
+    *sqr(pahConcentration*flThermo.rho()/202.0); //[mol/(m^3*s)]
     
-    volScalarField betaN = Kfm(2*nC)*Foam::constant::physicoChemical::NA; //[nm^3/(s*mol)]
+    volScalarField betaN = Kfm(2*nC)*Foam::constant::physicoChemical::NA; //[m^3/(s*mol)]
     
     dimensionedScalar MDimer (
         "dimerMolarMass",
@@ -186,7 +186,7 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
     
         const volScalarField& pahConcentration(mesh_.lookupObject<volScalarField>(tokens[specie]));
     
-        volScalarField jT = 0.5*Kfm(2*nCarbon[specie])*sqr(Foam::constant::physicoChemical::NA*pahConcentration*flThermo.rho()/MPAH)*pow(abscissaNucleation,moment.order());
+        volScalarField jT = 0.5*Kfm(2.0*nCarbon[specie])*sqr(Foam::constant::physicoChemical::NA*pahConcentration*flThermo.rho()/MPAH)*pow(abscissaNucleation,moment.order());
         
         Miller.ref().dimensions().reset
         (
@@ -200,42 +200,5 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
     
     return Miller;
 }
-
-
-/*Foam::tmp<Foam::volScalarField>
-Foam::populationBalanceSubModels::nucleationModels::Miller
-::nucleationSource(const volUnivariateMoment& moment) 
-{
-    
-    dimensionedScalar abscissaNucleation = pow(6.0/Foam::constant::mathematical::pi*2.0*MCarbon_*2.0*nCarbonPAH_/(rhoSoot_*Foam::constant::physicoChemical::NA),1.0/3.0);
-        
-    const volScalarField& pahConcentration(mesh_.lookupObject<volScalarField>("A4"));
-    
-    const fluidThermo& flThermo = mesh_.lookupObject<fluidThermo>(basicThermo::dictName);
-    
-    dimensionedScalar MPAH (
-        "PAHMolarMass",
-        Foam::dimensionSet(1,0,0,0,-1,0,0),
-        0.202
-    );
-    tmp<volScalarField> nucleationSource = 4.4*sqrt(Foam::constant::mathematical::pi
-        *Foam::constant::physicoChemical::k
-        *flThermo.T()*Foam::constant::physicoChemical::NA
-        /(2.0*nCarbonPAH_*MCarbon_))
-        *pow(12.0*nCarbonPAH_*MCarbon_
-        /(Foam::constant::mathematical::pi*rhoSoot_
-        *Foam::constant::physicoChemical::NA), 2.0/3.0)
-        *sqr(pahConcentration*flThermo.rho()/MPAH*Foam::constant::physicoChemical::NA)*pow(abscissaNucleation, moment.order()); 
-    
-    //nucleationSource.ref().dimensions().reset(moment.dimensions()/dimTime);
-    
-    //Info << "deltaT : " << mesh_.time().deltaT()<< endl;
-    
-    //Info << "nucleationSource" << nucleationSource.ref()[0] << endl;
-    
-    //Info << "moment" << moment.order() << ":" << moment[0] << endl;
-    
-    return nucleationSource;
-}*/
 
 // ************************************************************************* //
