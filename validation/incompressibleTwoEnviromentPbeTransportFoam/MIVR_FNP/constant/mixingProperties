@@ -1,0 +1,44 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      mixingProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+diffusionModel
+{
+    diffusionModel  turbulentDiffusion;
+    gammaLam    gammaLam [ 0 2 -1 0 0 0 0 ] 0.0;
+    Sc    0.7;
+}
+
+mixing on;
+
+mixingKernel
+{
+    Cphi                Cphi                [ 0 0 0 0 0 0 0 ] 2.0;
+    mixingKernel        IEM;
+}
+
+reaction off;
+
+reactionKernel
+{
+    reactionKernel  competitiveConsecutive;
+    k1      k1        [ 0 0 -1 0 0 0 0 ] 5.0e3;
+    k2      k2        [ 0 0 -1 0 0 0 0 ] 0.64;
+    Ca0     Ca0       [ 0 0 0 0 0 0 0 ] 1.0;
+    Cb0     Cb0       [ 0 0 0 0 0 0 0 ] 1.0;
+}
+
+// ************************************************************************* //
