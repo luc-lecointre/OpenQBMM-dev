@@ -394,19 +394,81 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance::
 
         return convectionMoment;
     }
-
+    
     label order = moment.order();
-
-    if (order < 1)
-    {
-        convectionMoment.ref().dimensions().reset(moment.dimensions()/dimTime);
-
-        return convectionMoment;
-    }
     
     volScalarField& cMoment = convectionMoment.ref();
     
-    label N2 = quadrature_.nMoments()+1;
+    forAll(quadrature_.nodes(), pNodeI)
+    {
+        const extendedVolScalarNode& node = quadrature_.nodes()[pNodeI];
+        
+        forAll(node.secondaryWeights(), sNodeI)
+        {
+            tmp<volScalarField> m1 =node.primaryWeight()*node.secondaryWeights()[sNodeI]*pow(convectionModel_->characteristic(node.secondaryAbscissae()[sNodeI]),order);
+            
+            cMoment.dimensions().reset(m1().dimensions());
+            cMoment == cMoment + m1;
+            
+            //Info << "difference" << convectionModel_->characteristic(node.secondaryAbscissae()[sNodeI]);
+        }
+            
+        volScalarField characteristic = convectionModel_->characteristic();
+        //Info << "characteristic in 0 : " << characteristic << endl;
+        volScalarField primaryAbscissa = node.primaryAbscissa();
+        //Info << "primaryAbscissa : " << primaryAbscissa << endl;
+        volScalarField sigma = node.sigma();
+        //Info << "sigma : " << sigma << endl;
+        volScalarField m2
+        (
+            IOobject
+            (
+                "m2",
+                U_.mesh().time().timeName(),
+                U_.mesh(),
+                IOobject::NO_READ,
+                IOobject::NO_WRITE,
+                false
+            ),
+            U_.mesh(),
+            dimensionedScalar("zero", cMoment.dimensions() , 0.0)
+        );
+        
+        
+        forAll(moment, cellI)
+        {
+            if (sigma[cellI]!=0 && primaryAbscissa[cellI]!=0)
+            {
+                /*scalar m2 = node.primaryWeight()*characteristic/2.0*
+                    (128.0/225.0*pow(convectionModel_->characteristic(characteristic/2.0),order)*quadrature_.momentInverter()->distribution(characteristic/2.0,primaryAbscissa,sigma[cellI])
+                    + ((322.0+13.0*sqrt(70.0))/900.0)*
+                    (pow(convectionModel_->characteristic(characteristic/2.0*(1.0+1.0/3.0*sqrt(5.0-2.0*sqrt(10.0/7.0)))),order)*quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0+1.0/3.0*sqrt(5.0-2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma)
+                    +pow(convectionModel_->characteristic(characteristic/2.0*(1.0-1.0/3.0*sqrt(5.0-2.0*sqrt(10.0/7.0)))),order)*quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0-1.0/3.0*sqrt(5.0-2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma))
+                    + ((322.0-13.0*sqrt(70.0))/900.0)*
+                    (pow(convectionModel_->characteristic(characteristic/2.0*(1.0+1.0/3.0*sqrt(5.0+2.0*sqrt(10.0/7.0)))),order)*quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0+1.0/3.0*sqrt(5.0+2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma)
+                    +pow(convectionModel_->characteristic(characteristic/2.0*(1.0-1.0/3.0*sqrt(5.0+2.0*sqrt(10.0/7.0)))),order)*quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0-1.0/3.0*sqrt(5.0+2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma)));*/
+                
+                m2[cellI] = node.primaryWeight()[cellI]*characteristic[cellI]/2.0*
+                    (8.0/9.0*pow(convectionModel_->characteristic(characteristic/2.0).ref()[cellI],order)
+                    *quadrature_.momentInverter()->distribution(characteristic[cellI]/2.0,primaryAbscissa[cellI],sigma[cellI])
+                    + 5.0/9.0*(pow(convectionModel_->characteristic(characteristic/2.0*(1.0+sqrt(3.0/5.0))).ref()[cellI],order)*quadrature_.momentInverter()->distribution(characteristic[cellI]/2.0*(1.0+sqrt(3.0/5.0)),primaryAbscissa[cellI],sigma[cellI])
+                    +pow(convectionModel_->characteristic(characteristic/2.0*(1.0-sqrt(3.0/5.0))).ref()[cellI],order)*quadrature_.momentInverter()->distribution(characteristic[cellI]/2.0*(1.0-sqrt(3.0/5.0)),primaryAbscissa[cellI],sigma[cellI])));
+            }
+        }
+                    
+        cMoment == cMoment - m2;
+        
+        //Info << max(cMoment) << endl;
+    }
+    
+    cMoment = (cMoment - moment)/U_.mesh().time().deltaT().value();
+    cMoment.dimensions().reset(moment.dimensions()/dimTime);
+    
+    return convectionMoment;
+    
+}
+    
+    /*label N2 = quadrature_.nMoments()+1;
     
     forAll(moment,cellI)
     {
@@ -421,19 +483,19 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance::
                 forAll(quadrature_.nodes(), pNodeI)
                 {
                     const extendedVolScalarNode& node = quadrature_.nodes()[pNodeI];
+                    
+                    scalar m1 = 0.0;
+                    scalar m2 = 0.0;
     
                     forAll(node.secondaryWeights(), sNodeI)
                     {
-                        scalar m = node.primaryWeight()[cellI]
-                            *node.secondaryWeights()[sNodeI][cellI]
+                        m1 = m1 + node.secondaryWeights()[sNodeI][cellI]
                             *pow(node.secondaryAbscissae()[sNodeI][cellI],mI);
-                    
-                        mSet[mI] = mSet[mI] + m;
                     }
                 
                     //Info << mSet[mI] << endl;
             
-                    /*scalar characteristic = convectionModel_->characteristic(cellI);
+                    scalar characteristic = convectionModel_->characteristic(cellI);
                     //Info << "characteristic in 0 : " << characteristic << endl;
                     scalar primaryAbscissa = node.primaryAbscissa()[cellI];
                     //Info << "primaryAbscissa : " << primaryAbscissa << endl;
@@ -442,17 +504,17 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance::
                     
                     if (sigma!=0)
                     {
-                        scalar m = characteristic/2.0*
-                            (128.0/225.0*quadrature_.momentInverter()->distribution(characteristic/2.0,primaryAbscissa,sigma)
+                        m2 = characteristic/2.0*
+                            (128.0/225.0*pow(characteristic/2.0,mI)*quadrature_.momentInverter()->distribution(characteristic/2.0,primaryAbscissa,sigma)
                             + ((322.0+13.0*sqrt(70.0))/900.0)*
-                            (quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0+1.0/3.0*sqrt(5.0-2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma)
-                            +quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0-1.0/3.0*sqrt(5.0-2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma))
+                            (pow(characteristic/2.0*(1.0+1.0/3.0*sqrt(5.0-2.0*sqrt(10.0/7.0))),mI)*quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0+1.0/3.0*sqrt(5.0-2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma)
+                            +pow(characteristic/2.0*(1.0-1.0/3.0*sqrt(5.0-2.0*sqrt(10.0/7.0))),mI)*quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0-1.0/3.0*sqrt(5.0-2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma))
                             + ((322.0-13.0*sqrt(70.0))/900.0)*
-                            (quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0+1.0/3.0*sqrt(5.0+2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma)
-                            +quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0-1.0/3.0*sqrt(5.0+2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma)));
-                
-                        mSet[mI] = mSet[mI] - node.primaryWeight()[cellI]*m;
-                    }*/
+                            (pow(characteristic/2.0*(1.0+1.0/3.0*sqrt(5.0+2.0*sqrt(10.0/7.0))),mI)*quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0+1.0/3.0*sqrt(5.0+2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma)
+                            +pow(characteristic/2.0*(1.0-1.0/3.0*sqrt(5.0+2.0*sqrt(10.0/7.0))),mI)*quadrature_.momentInverter()->distribution(characteristic/2.0*(1.0-1.0/3.0*sqrt(5.0+2.0*sqrt(10.0/7.0))),primaryAbscissa,sigma)));
+                    }
+                    
+                    mSet[mI] = mSet[mI] + node.primaryWeight()[cellI]*(m1-m2);
                 
                     //Info << mSet[mI] << endl;
                 }
@@ -460,13 +522,19 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance::
             
             //Info << "intermediate moments : " << mSet << endl;
             mSet.invert();
+            
+            
         
             forAll (mSet.weights(),I)
             {
+                scalar newAbscissa = max(convectionModel_->characteristic(mSet.abscissae()[I],cellI), 0.0);
+                
                 //Info << "intermediate abscissae : " << mSet.abscissae()[I] << endl;
-                scalar conv = mSet.weights()[I]
-                    *pow(convectionModel_->characteristic(mSet.abscissae()[I],cellI),order);
+                
+                scalar conv = mSet.weights()[I]*pow(newAbscissa,order);
+                
                 //Info << "new abscissa : " << convectionModel_->characteristic(mSet.abscissae()[I],cellI) << endl;
+                
                 cMoment[cellI] = cMoment[cellI] + conv;
             }
         }
@@ -481,7 +549,7 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance::
     //Info << "cMoment :" << cMoment << endl;
     
     return convectionMoment; 
-}
+}*/
 
 Foam::tmp<Foam::fvScalarMatrix>
 Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance

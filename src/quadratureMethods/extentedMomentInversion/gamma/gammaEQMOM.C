@@ -290,7 +290,18 @@ Foam::scalar Foam::gammaEQMOM::distribution
     const scalar& sigma
 ) const
 {
+    
     scalar alpha = primaryAbscissa/sigma;
+    
+    /*Info << "abscissa : " << primaryAbscissa << endl;
+    
+    Info << "sigma : " << sigma << endl;
+    
+    Info << "alpha : " << alpha << endl;
+    
+    Info << "gamma : " << gamma(alpha) << endl;
+    
+    Info << "pow(sigma,alpha) : " << pow(sigma,alpha) << endl;*/
     
     return pow(abscissa,alpha-1.0)*exp(-abscissa/sigma)/(gamma(alpha)*pow(sigma,alpha));
 }
