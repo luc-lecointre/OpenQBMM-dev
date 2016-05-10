@@ -346,7 +346,7 @@ Foam::PDFTransportModels::univariatePDFTransportModel::interfaceSource
                 + ".populationBalance2"
             );
         interSrc == gamma*P[0]*P[1]*(m2 - m1)
-          - turb.nut()/max(minDiff, m2 - m1)
+          - turb.nut()/max(minDiff, m1 - m2)
            *(P[0]*(fvc::grad(m1) & fvc::grad(m1))
           + P[1]*(fvc::grad(m2) & fvc::grad(m2)));
     }
@@ -429,15 +429,6 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
     }
     
     updateQuadrature();
-    
-    if (!ode_)
-    {
-        forAll(moments_, mI)
-        {
-            moments_[mI] == moments_[mI] + dt0*momentSource(moments_[mI]);
-        }
-        return;
-    }
     
     // create a volScalarField copy of moments, updates before each itteration
     PtrList<volScalarField> momentsOld(quadrature_.nMoments());
@@ -543,6 +534,16 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
         if (dTime.value() >= dt0.value())
         {
             timeComplete = true;
+        }
+        
+        if 
+        (
+            Foam::name(U_.mesh().time().deltaT().value()) == U_.mesh().time().timeName()
+         && timeComplete == true
+        )
+        {
+            maxDeltaT_ = false;
+            h_ = dt0*facMin_;
         }
         
         // Write some stuff

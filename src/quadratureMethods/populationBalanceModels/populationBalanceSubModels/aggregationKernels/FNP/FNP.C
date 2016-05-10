@@ -209,10 +209,14 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
 Foam::tmp<Foam::volScalarField>
 Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
 (
-    const volScalarField& abscissa1,
-    const volScalarField& abscissa2
+    const volScalarField& a1,
+    const volScalarField& a2
 ) const
 {
+    dimensionedScalar smallA("smallA", a1.dimensions(), 0);
+    volScalarField abscissa1 = max(a1, smallA);
+    volScalarField abscissa2 = max(a2, smallA);
+    
     if (min(abscissa1).value() < 0 || min(abscissa2).value() < 0)
     {
         FatalErrorInFunction
@@ -231,7 +235,6 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
         abscissa1.mesh().lookupObject<fluidThermo>(basicThermo::dictName);
         
     const volScalarField& T = flThermo.T();*/
-    
     volScalarField mixtureFraction //=
         //abscissa1.mesh().lookupObject<volScalarField>("mixtureFraction");
     (
@@ -239,14 +242,13 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
         (
             "mixtureFraction",
             "0",
-            abscissa1.mesh(),
+            a1.mesh(),
             IOobject::MUST_READ,
             IOobject::NO_WRITE,
             false
         ),
-        abscissa1.mesh()
+        a1.mesh()
     );
-    
     tmp<volScalarField> betaKernel
     (
         new volScalarField
@@ -254,13 +256,13 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
             IOobject
             (
                 "betaKernel",
-                abscissa1.mesh().time().timeName(),
-                abscissa1.mesh(),
+                a1.mesh().time().timeName(),
+                a1.mesh(),
                 IOobject::NO_READ,
                 IOobject::NO_WRITE,
                 false
             ),
-            abscissa1.mesh(),
+            a1.mesh(),
             dimensionedScalar("beta", dimless, 0.0)
         )
     );
@@ -279,6 +281,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
         }
         else
         {
+            Info<< mixtureFraction[cellI] << endl;
             scalar p = max(1.0, abscissa1[cellI]);
             scalar i = max(1.0, abscissa2[cellI]);
             
@@ -322,12 +325,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
             }
         }
     }
-    /*if (abscissa1[0] != 0 && abscissa2[0] != 0)
-    {
-        Info<< "p: " << abscissa1[0] << endl
-            << "i: " << abscissa2[0] << endl
-            << "Beta: " << betaKernel()[0]*m0Scaling_ << endl;
-    }*/
+    
     betaKernel.ref().dimensions().reset(pow3(abscissa1.dimensions())/dimTime);
     return betaKernel*m0Scaling_;
     
