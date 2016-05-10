@@ -566,7 +566,7 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
 
 void Foam::PDFTransportModels::univariatePDFTransportModel::solve()
 {
-    updatePhysicalSpaceConvection();
+    //updatePhysicalSpaceConvection();
     
     if (ode_)
     {
@@ -592,7 +592,7 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solve()
               ==
                 (moments_[mI] - m)/U_.mesh().time().deltaT()
               + momentSource(m)
-              + interfaceSource(m)
+              //+ interfaceSource(m)
             )
         );
     }

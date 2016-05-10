@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 
         while (pimple.loop())
         {
-            //populationBalance1->solve();
+            populationBalance1->solve();
             populationBalance2->solve();
                 
             forAll(moments, mi)
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
                     );
                     
                 moments[mi] =
-                  //  m1*mixingWeights[0] 
+                    //m1*mixingWeights[0] 
                    m2*mixingWeights[1];
             }
         }

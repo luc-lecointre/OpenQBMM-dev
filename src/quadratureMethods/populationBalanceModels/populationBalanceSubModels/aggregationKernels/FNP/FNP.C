@@ -237,15 +237,15 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
     (
         IOobject
         (
-            "mixtrueFraction",
-            abscissa1.mesh().time().timeName(),
+            "mixtureFraction",
+            "0",
             abscissa1.mesh(),
-            IOobject::NO_READ,
+            IOobject::MUST_READ,
             IOobject::NO_WRITE,
             false
         ),
         abscissa1.mesh(),
-        dimensionedScalar("mixtrueFraction", dimless, 0.6)
+        dimensionedScalar("mixtureFraction", dimless, 0.6)
     );
     
     tmp<volScalarField> betaKernel
