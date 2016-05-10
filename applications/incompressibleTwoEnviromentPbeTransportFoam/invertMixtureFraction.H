@@ -34,7 +34,7 @@ forAll(mixingWeights, nodei)
                 IOobject
                 (
                     "moment." + Foam::name(mi) + ".mixing",
-                    runTime.timeName(),
+                    "0",
                     mesh,
                     IOobject::MUST_READ,
                     IOobject::NO_WRITE,
@@ -61,5 +61,17 @@ forAll(mixingWeights, nodei)
             mixingWeights[nodei][celli] = momentsToInvert.weights()[nodei];
         }
     }
-}    
-        
+}
+
+volScalarField mixtureFraction
+(
+    IOobject
+    (
+        "mixtureFraction",
+        runTime.timeName(),
+        mesh,
+        IOobject::MUST_READ,
+        IOobject::AUTO_WRITE
+    ),
+    mesh
+);

@@ -72,6 +72,9 @@ class FNP
 {
 //- Private variables
     
+    //- Value that m0 is scaled by, used to scale final source term
+    scalar m0Scaling_;
+    
     //- Number of unimers
     scalar nUnimers_;
     
@@ -99,6 +102,9 @@ class FNP
     dimensionedScalar Xip_;
     dimensionedScalar Xi0_;
     
+    //- Temperature
+    scalar T_;
+    
     //- const refrence to mixtureFraction
     //const volScalarField& mixtureFraction_;
     
@@ -108,8 +114,7 @@ class FNP
     scalar beta
     (
         const scalar& p,
-        const scalar& i,
-        const scalar& T
+        const scalar& i
     ) const;
         
     

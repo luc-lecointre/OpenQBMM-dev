@@ -58,6 +58,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP
 )
 :
     aggregationKernel(dict),
+    m0Scaling_(readScalar(dict.lookup("m0Scaling"))),
     nUnimers_(readScalar(dict.lookup("nUnimers"))),
     cellVol_(dict.lookup("cellVol")),
     siteVol_(dict.lookup("siteVol")),
@@ -68,7 +69,8 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP
     nuB_(readScalar(dict.lookup("nuB"))),
     etaS_(dict.lookup("etaS")),
     Xip_(dict.lookup("Xip")),
-    Xi0_(dict.lookup("Xi0"))
+    Xi0_(dict.lookup("Xi0")),
+    T_(readScalar(dict.lookup("T")))
 {}
 
 
@@ -85,8 +87,7 @@ Foam::scalar
 Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
 (
     const scalar& p,
-    const scalar& i,
-    const scalar& T
+    const scalar& i
 ) const
 {
     // Free Coupling
@@ -95,10 +96,10 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
         scalar R = pow(na_*siteVol_.value(), nuA_) + pow(nb_,nuB_)
             *pow(siteVol_.value(), 1.0/3.0);
         
-        scalar D = Foam::constant::physicoChemical::k.value()*T
+        scalar D = Foam::constant::physicoChemical::k.value()*T_
             /(6.0*Foam::constant::mathematical::pi*etaS_.value()*R);
         
-        scalar Rcoll = pow(p*na_*siteVol_.value(), 1.0/3.0);
+        scalar Rcoll = pow(na_*siteVol_.value(), 1.0/3.0);
         
         return
             16.0*Foam::constant::mathematical::pi*D*Rcoll;
@@ -129,15 +130,14 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
             scalar R_i = pow(na_*siteVol_.value(), nuA_) + pow(nb_,nuB_)
                 *pow(siteVol_.value(), 1.0/3.0);
         
-            scalar D_p = Foam::constant::physicoChemical::k.value()*T
+            scalar D_p = Foam::constant::physicoChemical::k.value()*T_
                 /(6.0*Foam::constant::mathematical::pi*etaS_.value()*R_p);
-            scalar D_i = Foam::constant::physicoChemical::k.value()*T
+            scalar D_i = Foam::constant::physicoChemical::k.value()*T_
                 /(6.0*Foam::constant::mathematical::pi*etaS_.value()*R_i);
             
-            scalar Cstar = 1.0/(siteVol_.value()*pow(nb_, (3.0*nuB_ - 1.0)));
-            scalar Cratio = Cstar/Ccor_p;
-            scalar Dstar = D_i*pow(Cratio, 1.5);
-            scalar Ains = exp(-alpha_*Foam::sqrt(p));
+            scalar Cp = 1.0/(siteVol_.value()*pow(nb_, (3.0*nuB_ - 1.0)));
+            scalar Dstar = D_i*pow(Cp/Ccor_p, 1.5);
+            scalar Ains = exp(-alpha_*sqrt(p));
             
             return
                  4.0*Foam::constant::mathematical::pi
@@ -153,15 +153,14 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
                 *pow(siteVol_.value(), 1.0/3.0);
             scalar R_i = Rcoll_i + Rcor_i;
         
-            scalar D_p = Foam::constant::physicoChemical::k.value()*T
+            scalar D_p = Foam::constant::physicoChemical::k.value()*T_
                 /(6.0*Foam::constant::mathematical::pi*etaS_.value()*R_p);
-            scalar D_i = Foam::constant::physicoChemical::k.value()*T
+            scalar D_i = Foam::constant::physicoChemical::k.value()*T_
                 /(6.0*Foam::constant::mathematical::pi*etaS_.value()*R_i);
             
-            scalar Cstar = 1.0/(siteVol_.value()*pow(nb_, (3.0*nuB_ - 1.0)));
-            scalar Cratio = Cstar/Ccor_i;
-            scalar Dstar = D_p*pow(Cratio, 1.5);
-            scalar Ains = Foam::exp(-alpha_*Foam::sqrt(i));
+            scalar Cp = 1.0/(siteVol_.value()*pow(nb_, (3.0*nuB_ - 1.0)));
+            scalar Dstar = D_p*pow(Cp/Ccor_i, 1.5);
+            scalar Ains = exp(-alpha_*sqrt(i));
             
             return
                  4.0*Foam::constant::mathematical::pi
@@ -176,9 +175,9 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
             scalar R_p = Rcoll_p + Rcor_p;
             scalar R_i = Rcoll_i + Rcor_i;
             
-            scalar D_p = Foam::constant::physicoChemical::k.value()*T
+            scalar D_p = Foam::constant::physicoChemical::k.value()*T_
                 /(6.0*Foam::constant::mathematical::pi*etaS_.value()*R_p);
-            scalar D_i = Foam::constant::physicoChemical::k.value()*T
+            scalar D_i = Foam::constant::physicoChemical::k.value()*T_
                 /(6.0*Foam::constant::mathematical::pi*etaS_.value()*R_i);
                 
             scalar Chi = 
@@ -189,17 +188,17 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::beta
             scalar N = nb_/pow(Chi/pow(siteVol_.value(), 1.0/3.0), 5.0/3.0);
             
             scalar Dfus =
-                Foam::constant::physicoChemical::k.value()*T
+                Foam::constant::physicoChemical::k.value()*T_
                *sqr(Rcor_p + Rcor_i)/(etaS_.value()*N*Chi*sqr(L));
             
             scalar Afus = exp(-alpha_*min(p, i)*sqrt(max(p,i)));
             
             return
-                 4.0*Foam::constant::mathematical::pi
-                *Afus*((D_p + D_i)
+                 4.0*Foam::constant::mathematical::pi*Afus*((D_p + D_i)
                 *Dfus*(Rcoll_p + Rcoll_i)*(Rcoll_p + Rcoll_i + Rcor_p + Rcor_i))
                 /(Dfus*(Rcoll_p + Rcoll_i) + (D_p + D_i)*(Rcor_p + Rcor_i));
         }
+        
         else
         {
             return scalar(0);
@@ -221,7 +220,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
             << abort(FatalError);
     }
     
-    if (!abscissa1.mesh().foundObject<fluidThermo>(basicThermo::dictName))
+    /*if (!abscissa1.mesh().foundObject<fluidThermo>(basicThermo::dictName))
     {
         FatalErrorInFunction
             << "No valid thermophysical model found."
@@ -231,20 +230,22 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
     const fluidThermo& flThermo =
         abscissa1.mesh().lookupObject<fluidThermo>(basicThermo::dictName);
         
-    const volScalarField& T = flThermo.T();
+    const volScalarField& T = flThermo.T();*/
     
-    volScalarField mixtureFraction
+    volScalarField mixtureFraction //=
+        //abscissa1.mesh().lookupObject<volScalarField>("mixtureFraction");
     (
         IOobject
         (
-            "mixtureFraction",
-            "0",
+            "mixtrueFraction",
+            abscissa1.mesh().time().timeName(),
             abscissa1.mesh(),
             IOobject::NO_READ,
-            IOobject::NO_WRITE
+            IOobject::NO_WRITE,
+            false
         ),
         abscissa1.mesh(),
-        dimensionedScalar("mixtureFraction", dimless, 1.0)
+        dimensionedScalar("mixtrueFraction", dimless, 0.6)
     );
     
     tmp<volScalarField> betaKernel
@@ -256,21 +257,28 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
                 "betaKernel",
                 abscissa1.mesh().time().timeName(),
                 abscissa1.mesh(),
-                IOobject::MUST_READ,
+                IOobject::NO_READ,
                 IOobject::NO_WRITE,
                 false
             ),
-            abscissa1.mesh()
+            abscissa1.mesh(),
+            dimensionedScalar("beta", dimless, 0.0)
         )
     );
 
     forAll(abscissa1, cellI)
     {
-        if (mixtureFraction[cellI] < Xip_.value())
+        if
+        (
+            abscissa1[cellI] == 0 
+         || abscissa2[cellI] == 0
+         || mixtureFraction[cellI] < Xip_.value()
+         || mixtureFraction[cellI] > Xi0_.value()
+        )
         {
             betaKernel.ref()[cellI] = scalar(0);
         }
-        else if (abscissa1[cellI] != 0 && abscissa2[cellI] != 0)
+        else
         {
             scalar p = max(1.0, abscissa1[cellI]);
             scalar i = max(1.0, abscissa2[cellI]);
@@ -283,30 +291,30 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
             if(pLow == pHigh && iLow == iHigh)
             {
                 betaKernel.ref()[cellI] =
-                    beta(p,i, T[cellI]);
+                    beta(p,i);
             }
             else if (pLow == pHigh)
             {
-                scalar BpLow = beta(p, iLow, T[cellI]);
-                scalar BpHigh = beta(p, iHigh, T[cellI]);
+                scalar BpLow = beta(p, iLow);
+                scalar BpHigh = beta(p, iHigh);
                 
                 betaKernel.ref()[cellI] = BpLow + (iHigh - i)
                    *(BpHigh - BpLow)/(iHigh - iLow);
             }
             else if (iLow == iHigh)
             {
-                scalar BiLow = beta(pLow, i, T[cellI]);
-                scalar BiHigh = beta(pHigh, i, T[cellI]);
+                scalar BiLow = beta(pLow, i);
+                scalar BiHigh = beta(pHigh, i);
                 
                 betaKernel.ref()[cellI] = BiLow + (pHigh - p)
                    *(BiHigh - BiLow)/(pHigh - pLow);
             }
             else
             {
-                scalar B11 = beta(pLow, iLow, T[cellI]);
-                scalar B12 = beta(pLow, iHigh, T[cellI]);
-                scalar B21 = beta(pHigh, iLow, T[cellI]);
-                scalar B22 = beta(pHigh, iHigh, T[cellI]);
+                scalar B11 = beta(pLow, iLow);
+                scalar B12 = beta(pLow, iHigh);
+                scalar B21 = beta(pHigh, iLow);
+                scalar B22 = beta(pHigh, iHigh);
                   
                 betaKernel.ref()[cellI] = 
                     (B11*(pHigh - p)*(iHigh - i) + B21*(p - pLow)*(iHigh - i)
@@ -315,7 +323,14 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
             }
         }
     }
-    return betaKernel*9.00e23;//*5.67e-7;
+    /*if (abscissa1[0] != 0 && abscissa2[0] != 0)
+    {
+        Info<< "p: " << abscissa1[0] << endl
+            << "i: " << abscissa2[0] << endl
+            << "Beta: " << betaKernel()[0]*m0Scaling_ << endl;
+    }*/
+    betaKernel.ref().dimensions().reset(pow3(abscissa1.dimensions())/dimTime);
+    return betaKernel*m0Scaling_;
     
 }
 

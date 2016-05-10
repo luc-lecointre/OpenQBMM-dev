@@ -48,7 +48,7 @@ Foam::PDFTransportModels::univariatePDFTransportModel
     RTol_(readScalar(dict.subDict("odeCoeffs").lookup("RTol"))),
     fac_(readScalar(dict.subDict("odeCoeffs").lookup("fac"))),
     facMin_(readScalar(dict.subDict("odeCoeffs").lookup("facMin"))),
-    facMax_(2.0),
+    facMax_(readScalar(dict.subDict("odeCoeffs").lookup("facMax"))),
     h_(facMin_*U.mesh().time().deltaT()),
     maxDeltaT_(false),
     quadrature_(name, mesh, support),
@@ -256,13 +256,6 @@ Foam::PDFTransportModels::univariatePDFTransportModel::interfaceSource
     const volUnivariateMoment& m
 )
 {
-    word order;
-    
-    forAll(m.cmptOrders(), dimi)
-    {
-        order += Foam::name(m.cmptOrders()[dimi]);
-    }
-    
     tmp<volScalarField> iSource
     (
         new volScalarField
@@ -287,6 +280,13 @@ Foam::PDFTransportModels::univariatePDFTransportModel::interfaceSource
     }
     
     volScalarField& interSrc = iSource.ref();
+    
+    word order;
+    
+    forAll(m.cmptOrders(), dimi)
+    {
+        order += Foam::name(m.cmptOrders()[dimi]);
+    }
     
     PtrList<volScalarField> P(2);
     
@@ -314,8 +314,9 @@ Foam::PDFTransportModels::univariatePDFTransportModel::interfaceSource
             icoTurbModel::propertiesName
         );
 
-    const volScalarField& Dt = turb.nut();
     volScalarField gamma = 2.0*turb.epsilon()/turb.k(); // Cphi = 2.0
+    
+    dimensionedScalar minDiff("min", m.dimensions(), 1e-4);
     
     if (name_ == "populationBalance2")
     {
@@ -329,8 +330,9 @@ Foam::PDFTransportModels::univariatePDFTransportModel::interfaceSource
         
         const volUnivariateMoment& m2 = m;
         
-        interSrc == gamma*P[0]*P[1]*(m1 - m2)
-          + Dt/(m2 - m1)*(P[0]*(fvc::grad(m1) & fvc::grad(m1))
+        interSrc == gamma*P[0]*P[1]*(m1 - m2) 
+          + turb.nut()/max(minDiff, m2 - m1)
+           *(P[0]*(fvc::grad(m1) & fvc::grad(m1))
           + P[1]*(fvc::grad(m2) & fvc::grad(m2)));
     }
     else
@@ -344,10 +346,11 @@ Foam::PDFTransportModels::univariatePDFTransportModel::interfaceSource
                 + ".populationBalance2"
             );
         interSrc == gamma*P[0]*P[1]*(m2 - m1)
-          + Dt/(m1 - m2)*(P[0]*(fvc::grad(m1) & fvc::grad(m1))
+          - turb.nut()/max(minDiff, m2 - m1)
+           *(P[0]*(fvc::grad(m1) & fvc::grad(m1))
           + P[1]*(fvc::grad(m2) & fvc::grad(m2)));
     }
-    
+    iSource().write();
     return iSource;
 }
 
@@ -534,7 +537,7 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
         
         else
         {
-            h_ = dt0*min(facMax_, max(facMin_, fac_/pow(err, 1.0/3.0)));
+            h_ = max(dt0*facMin_, min(h_*facMax_, dt0*fac_/pow(err, 1.0/3.0)));
         }
         
         if (dTime.value() >= dt0.value())
@@ -599,7 +602,7 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solve()
         momentEqns[mEqni].relax();
         momentEqns[mEqni].solve();
     }
-    
+        
     quadrature_.updateQuadrature();
     
 }

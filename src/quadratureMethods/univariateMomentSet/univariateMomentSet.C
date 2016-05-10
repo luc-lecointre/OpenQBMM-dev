@@ -395,11 +395,14 @@ void Foam::univariateMomentSet::checkRealizability()
         fullyRealizable_ = false;
         subsetRealizable_ = true;
         onMomentSpaceBoundary_ = false;
-
+        
         FatalErrorIn
         (
             "Foam::univariateMomentSet::checkRealizability()\n"
-        )   << "Moment set with only one realizable moment."
+        )   << "Moment set with only one realizable moment." << endl
+            << this->operator[](0) << endl
+            << this->operator[](1) << endl
+            << this->operator[](2) << endl
             << abort(FatalError);
     }
 

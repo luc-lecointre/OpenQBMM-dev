@@ -192,16 +192,10 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
                             (
                                 0.5*pow // Birth
                                 (
-                                    sAbscissa1 + sAbscissa2,
-                                    order
-                                )
-                                /*(
                                     pow3(sAbscissa1) + pow3(sAbscissa2),
                                     order/3.0
                                 )
-                              - pow(sAbscissa1, order)*/
-                              - 0.5*(pow(sAbscissa1, order)
-                              + pow(sAbscissa2, order))
+                              - pow(sAbscissa1, order)
                             )*aggregationKernel_->Ka(sAbscissa1, sAbscissa2)
                         );
 
