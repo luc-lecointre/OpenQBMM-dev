@@ -199,13 +199,13 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::updateQuadrature()
         );
 
         // Copying to fields
-        for (label pNodeI = 0; pNodeI < quadrature_.nodes().size(); pNodeI++)
+        for (label pNodi = 0; pNodi < quadrature_.nodes().size(); pNodi++)
         {
-            extendedVolScalarNode& node(nodes[pNodeI]);
+            extendedVolScalarNode& node(nodes[pNodi]);
 
             // Copy primary node
-            node.primaryWeight()[celli] = pWeights[pNodeI];
-            node.primaryAbscissa()[celli] = pAbscissae[pNodeI];
+            node.primaryWeight()[celli] = pWeights[pNodi];
+            node.primaryAbscissa()[celli] = pAbscissae[pNodi];
 
             // Copy secondary nodes
             PtrList<volScalarField>& sWeightFields(node.secondaryWeights());
@@ -221,10 +221,10 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::updateQuadrature()
                 momentInverter_->secondaryAbscissae()
             );
 
-            for (label sNodeI = 0; sNodeI < quadrature_.nodes()[0].nSecondaryNodes(); sNodeI++)
+            for (label pNodi = 0; pNodi < quadrature_.nodes()[0].nSecondaryNodes(); pNodi++)
             {
-                sWeightFields[sNodeI][celli] = sWeights[pNodeI][sNodeI];
-                sAbscissaFields[sNodeI][celli] = sAbscissae[pNodeI][sNodeI];
+                sWeightFields[pNodi][celli] = sWeights[pNodi][pNodi];
+                sAbscissaFields[pNodi][celli] = sAbscissae[pNodi][pNodi];
             }
 
             // Copy sigma
@@ -233,18 +233,18 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::updateQuadrature()
     }
 
     // Updating boundary conditions
-    forAll(nodes, pNodeI)
+    forAll(nodes, pNodi)
     {
-        extendedVolScalarNode& pNode(nodes[pNodeI]);
+        extendedVolScalarNode& pNode(nodes[pNodi]);
 
         pNode.primaryWeight().correctBoundaryConditions();
         pNode.primaryAbscissa().correctBoundaryConditions();
         pNode.sigma().correctBoundaryConditions();
 
-        for (label sNodeI = 0; sNodeI < quadrature_.nodes()[0].nSecondaryNodes(); sNodeI++)
+        for (label pNodi = 0; pNodi < quadrature_.nodes()[0].nSecondaryNodes(); pNodi++)
         {
-            pNode.secondaryWeights()[sNodeI].correctBoundaryConditions();
-            pNode.secondaryAbscissae()[sNodeI].correctBoundaryConditions();
+            pNode.secondaryWeights()[pNodi].correctBoundaryConditions();
+            pNode.secondaryAbscissae()[pNodi].correctBoundaryConditions();
         }
     }
 

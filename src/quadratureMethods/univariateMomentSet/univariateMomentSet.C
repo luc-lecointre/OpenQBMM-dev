@@ -426,18 +426,18 @@ void Foam::univariateMomentSet::checkRealizability()
     // Matrix used to build the recurrence relation
     scalarRectangularMatrix zRecurrence(nD + 1, nMoments_, 0.0);
 
-    for (label columnI = 0; columnI < nMoments_; columnI++)
+    for (label columni = 0; columni < nMoments_; columni++)
     {
-        zRecurrence[0][columnI] = (*this)[columnI];
+        zRecurrence[0][columni] = (*this)[columni];
     }
 
     alpha_[0] = (*this)[1]/(*this)[0];
     beta_[0] = (*this)[0];
 
-    for (label columnI = 1; columnI < nMoments_ - 1; columnI++)
+    for (label columni = 1; columni < nMoments_ - 1; columni++)
     {
-        zRecurrence[1][columnI] = zRecurrence[0][columnI + 1]
-              - alpha_[0]*zRecurrence[0][columnI];
+        zRecurrence[1][columni] = zRecurrence[0][columni + 1]
+              - alpha_[0]*zRecurrence[0][columni];
     }
 
     zeta[0] = alpha_[0];
@@ -561,11 +561,11 @@ void Foam::univariateMomentSet::checkRealizability()
             }
         }
 
-        for (label columnI = zetai + 1; columnI <= nN - zetai - 1; columnI++)
+        for (label columni = zetai + 1; columni <= nN - zetai - 1; columni++)
         {
-            zRecurrence[zetai + 1][columnI] = zRecurrence[zetai][columnI + 1]
-                    - alpha_[zetai]*zRecurrence[zetai][columnI]
-                    - beta_[zetai]*zRecurrence[zetai - 1][columnI];
+            zRecurrence[zetai + 1][columni] = zRecurrence[zetai][columni + 1]
+                    - alpha_[zetai]*zRecurrence[zetai][columni]
+                    - beta_[zetai]*zRecurrence[zetai - 1][columni];
         }
     }
 
