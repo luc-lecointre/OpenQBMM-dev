@@ -592,7 +592,7 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solve()
               ==
                 (moments_[mI] - m)/U_.mesh().time().deltaT()
               + momentSource(m)
-              //+ interfaceSource(m)
+              + interfaceSource(m)
             )
         );
     }

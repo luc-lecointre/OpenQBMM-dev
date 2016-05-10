@@ -244,8 +244,7 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
             IOobject::NO_WRITE,
             false
         ),
-        abscissa1.mesh(),
-        dimensionedScalar("mixtureFraction", dimless, 0.6)
+        abscissa1.mesh()
     );
     
     tmp<volScalarField> betaKernel
