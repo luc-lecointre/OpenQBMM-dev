@@ -221,10 +221,10 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::updateQuadrature()
                 momentInverter_->secondaryAbscissae()
             );
 
-            for (label pNodi = 0; pNodi < quadrature_.nodes()[0].nSecondaryNodes(); pNodi++)
+            for (label sNodi = 0; sNodi < quadrature_.nodes()[0].nSecondaryNodes(); sNodi++)
             {
-                sWeightFields[pNodi][celli] = sWeights[pNodi][pNodi];
-                sAbscissaFields[pNodi][celli] = sAbscissae[pNodi][pNodi];
+                sWeightFields[sNodi][celli] = sWeights[pNodi][sNodi];
+                sAbscissaFields[sNodi][celli] = sAbscissae[pNodi][sNodi];
             }
 
             // Copy sigma
@@ -241,10 +241,10 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::updateQuadrature()
         pNode.primaryAbscissa().correctBoundaryConditions();
         pNode.sigma().correctBoundaryConditions();
 
-        for (label pNodi = 0; pNodi < quadrature_.nodes()[0].nSecondaryNodes(); pNodi++)
+        for (label sNodi = 0; sNodi < quadrature_.nodes()[0].nSecondaryNodes(); sNodi++)
         {
-            pNode.secondaryWeights()[pNodi].correctBoundaryConditions();
-            pNode.secondaryAbscissae()[pNodi].correctBoundaryConditions();
+            pNode.secondaryWeights()[sNodi].correctBoundaryConditions();
+            pNode.secondaryAbscissae()[sNodi].correctBoundaryConditions();
         }
     }
 
@@ -367,6 +367,9 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
     PtrList<volScalarField> k2(quadrature_.nMoments());
     PtrList<volScalarField> k3(quadrature_.nMoments());
     
+    // create a volScalarField copy of moments, updates before each itteration
+    PtrList<volScalarField> momentsOld(quadrature_.nMoments());
+    
     forAll(moments_, mi)
     {
         k1.set
@@ -427,22 +430,12 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
         );
         
         moments_[mi] == quadrature_.moments()[mi];
-    }
-    
-    updateQuadrature();
-    
-    // create a volScalarField copy of moments, updates before each itteration
-    PtrList<volScalarField> momentsOld(quadrature_.nMoments());
-    
-    forAll(moments_, mi)
-    {
+        
         momentsOld.set
         (
             mi,
             new volScalarField(quadrature_.moments()[mi])
         );
-        
-        moments_[mi] == quadrature_.moments()[mi];
     }
     
     updateQuadrature();
@@ -508,7 +501,7 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
         updateQuadrature();
         
         // Calculate error
-        scalar sc = 0.0;
+        scalar sc = 1.0;
         scalar error = 0.0;
         
         forAll(moments_, mi)
@@ -569,10 +562,57 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
 void Foam::PDFTransportModels::univariatePDFTransportModel::solve()
 {
     updatePhysicalSpaceConvection();
+    PtrList<volScalarField> odeSource(quadrature_.nMoments());
     
     if (ode_)
     {
         solveMomentSource();
+        
+        forAll(quadrature_.moments(), mi)
+        {
+            const volUnivariateMoment& m = quadrature_.moments()[mi];
+            odeSource.set
+            (
+                mi,
+                new volScalarField
+                (
+                    (moments_[mi] - m)/U_.mesh().time().deltaT()
+                )
+            );
+            moments_[mi] == m;
+        }
+        updateQuadrature();
+    }
+    else
+    {
+        forAll(quadrature_.moments(), mi)
+        {
+            odeSource.set
+            (
+                mi,
+                new volScalarField
+                (
+                    IOobject
+                    (
+                        "zeroField",
+                        U_.mesh().time().timeName(),
+                        U_.mesh(),
+                        IOobject::NO_READ,
+                        IOobject::NO_WRITE,
+                        false
+                    ),
+                    U_.mesh(),
+                    dimensionedScalar
+                    (
+                        "zero",
+                        moments_[mi].dimensions()/dimTime,
+                        0.0
+                    )
+                )
+            );
+            moments_[mi] == quadrature_.moments()[mi];
+        }
+        updateQuadrature();
     }
     
     // List of moment transport equations
@@ -592,7 +632,7 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solve()
               + physicalSpaceConvection(m)
               - momentDiffusion(m)
               ==
-                (moments_[momenti] - m)/U_.mesh().time().deltaT()
+                odeSource[momenti]
               + momentSource(m)
               + interfaceSource(m)
             )

@@ -110,7 +110,15 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
             U.mesh()
         )
     )
-{}
+{
+    if (!ode)
+    {
+        aggODE_ = 0;
+        brkODE_ = 0;
+        nucODE_ = 0;
+        grwODE_ = 0;
+    }
+}
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
