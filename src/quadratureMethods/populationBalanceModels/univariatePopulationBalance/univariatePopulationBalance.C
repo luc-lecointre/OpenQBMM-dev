@@ -111,7 +111,7 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
         )
     )
 {
-    if (!ode)
+    if (!ode())
     {
         aggODE_ = 0;
         brkODE_ = 0;

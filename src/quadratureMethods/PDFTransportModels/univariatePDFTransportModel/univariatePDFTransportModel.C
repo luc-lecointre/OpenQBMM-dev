@@ -543,8 +543,8 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
         // Write some stuff
         Info<< "Iteration " << nItt 
             << ", "
-            << "Residual = " << err
-            << ","
+            << "Time step = " << h_.value() << "s"
+            << ", "
             << "Local time = " << dTime.value() << "s"
             << endl;
             

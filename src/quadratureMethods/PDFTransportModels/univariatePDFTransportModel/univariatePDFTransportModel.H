@@ -176,6 +176,9 @@ public:
     // Member Functions
 
         //- Access
+    
+            //- Returns whether or not the ode solver is turned on.
+            inline bool ode() const;
 
             //- Returns a const reference to the quadrature approximation
             inline const univariateQuadratureApproximation& quadrature() const;
