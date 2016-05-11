@@ -29,8 +29,8 @@ Foam::univariateMomentSet::univariateMomentSet
 (
     const label nMoments,
     const scalar initValue,
-    const word quadratureType,
-    const word support,
+    const word& quadratureType,
+    const word& support,
     const scalar knownAbscissa
 )
 :
@@ -40,6 +40,7 @@ Foam::univariateMomentSet::univariateMomentSet
     beta_(),
     quadratureType_(quadratureType),
     support_(support),
+    negativeZeta_(0),
     degenerate_(false),
     inverted_(false),
     fullyRealizable_(true),
@@ -67,9 +68,8 @@ Foam::univariateMomentSet::univariateMomentSet
     if (quadratureType_ != "Gauss" && quadratureType_ != "GaussRadau")
     {
         FatalErrorInFunction
-            << "The specified quadrature type is invalid." << nl
-            << "    Valid supports are: Gauss and GaussRadau." << nl
-            << "    Moment set: " << (*this)
+            << "The specified quadrature type is invalid." << endl
+            << "Valid quadrature types are: Gauss and GaussRadau."
             << abort(FatalError);
     }
 
@@ -82,8 +82,8 @@ Foam::univariateMomentSet::univariateMomentSet
 Foam::univariateMomentSet::univariateMomentSet
 (
     const scalarDiagonalMatrix& m,
-    const word quadratureType,
-    const word support,
+    const word& quadratureType,
+    const word& support,
     const scalar knownAbscissa
 )
 :
@@ -93,6 +93,7 @@ Foam::univariateMomentSet::univariateMomentSet
     beta_(),
     quadratureType_(quadratureType),
     support_(support),
+    negativeZeta_(0),
     degenerate_(false),
     inverted_(false),
     fullyRealizable_(true),
@@ -119,8 +120,8 @@ Foam::univariateMomentSet::univariateMomentSet
     if (quadratureType_ != "Gauss" && quadratureType_ != "GaussRadau")
     {
         FatalErrorInFunction
-            << "The specified quadrature type is invalid." << nl
-            << "    Valid supports are: Gauss and GaussRadau."
+            << "The specified quadrature type is invalid." << endl
+            << "Valid quadrature types are: Gauss and GaussRadau."
             << abort(FatalError);
     }
 
@@ -569,10 +570,7 @@ void Foam::univariateMomentSet::checkRealizability()
         }
     }
 
-	if (nR == 1)
-	{
-		beta_[nD] = zRecurrence[nD][nD]/zRecurrence[nD - 1][nD - 1];
-	}
+    beta_[nD] = zRecurrence[nD][nD]/zRecurrence[nD - 1][nD - 1];
 
     if (support_ == "R")
     {
@@ -780,7 +778,7 @@ void Foam::univariateMomentSet::setupQuadrature(bool clear)
 
     if (degenerate_)
     {
-        nNodes_ = 1.0;
+        nNodes_ = 1;
     }
     else
     {
