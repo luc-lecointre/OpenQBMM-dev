@@ -69,7 +69,7 @@ private:
     // Private data
 
         //- Model coefficient
-        scalar Xi_;
+        dimensionedScalar Xi_;
     
 public:
 

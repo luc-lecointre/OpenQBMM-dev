@@ -110,7 +110,7 @@ Foam::volScalarField Foam::populationBalanceSubModels::aggregationKernels::Fuchs
     const volScalarField& abscissa
 ) const
 {       
-    return 2.0*pow(3.0/(4.0*Foam::constant::mathematical::pi)*abscissa,1.0/3.0)*pow(abscissa/abscissa0_,1.0/df_);
+    return 2.0*pow(3.0/(4.0*Foam::constant::mathematical::pi)*abscissa,1.0/3.0);//*pow(abscissa/abscissa0_,1.0/df_);
 }
 
 Foam::volScalarField Foam::populationBalanceSubModels::aggregationKernels::Fuchs::velocity

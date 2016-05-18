@@ -110,7 +110,7 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
     const volScalarField& pahConcentration(mesh_.lookupObject<volScalarField>(PAH_));
     
     volScalarField dimerSource = 0.5*Kfm(nC)*Foam::constant::physicoChemical::NA
-    *sqr(pahConcentration*flThermo.rho()/202.0); //[mol/(m^3*s)]
+    *sqr(pahConcentration*flThermo.rho()/0.202); //[mol/(m^3*s)]
     
     volScalarField betaN = Kfm(2*nC)*Foam::constant::physicoChemical::NA; //[m^3/(s*mol)]
     

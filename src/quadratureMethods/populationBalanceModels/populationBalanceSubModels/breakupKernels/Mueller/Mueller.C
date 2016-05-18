@@ -58,7 +58,7 @@ Foam::populationBalanceSubModels::breakupKernels::Mueller
 )
 :
     breakupKernel(dict),
-    Xi_(readScalar(dict.lookup("Xi")))
+    Xi_("concentration hydrogen sites", inv(sqr(dimLength)), 17.0)
 {}
 
 
@@ -104,7 +104,7 @@ Foam::populationBalanceSubModels::breakupKernels::Mueller::Kb
     {
         if (abscissa[cellI] != 0.0)
         {
-            breakup.ref()[cellI] = 12*2.20e6*exp(-31.38/(0.008314*T[cellI]))*Xi_*concentration_O2[cellI]*rho[cellI]/(0.016*abscissa[cellI]);
+            breakup.ref()[cellI] = pow(36*Foam::constant::mathematical::pi,1.0/3.0)*2.20e6*exp(-31380/(8.314*T[cellI]))*Xi_*concentration_O2[cellI]*rho[cellI]/(0.032*pow(abscissa[cellI],1.0/3.0));
         }
     }
     

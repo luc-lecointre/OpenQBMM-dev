@@ -84,6 +84,7 @@ private:
         //-constant growthReduction
         tmp<volScalarField> cRed();
         tmp<volScalarField> cGro();
+        tmp<volScalarField> cOH();
         
 
 public:

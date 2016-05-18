@@ -204,10 +204,11 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
                             (
                                 0.5*pow // Birth
                                 (
-                                    pow3(sAbscissa1) + pow3(sAbscissa2),
-                                    order/3.0
+                                    sAbscissa1 + sAbscissa2,
+                                    order
                                 )
                               - pow(sAbscissa1, order)
+                              - pow(sAbscissa2, order)
                             )*aggregationKernel_->Ka(sAbscissa1, sAbscissa2)
                         );
                         
@@ -437,7 +438,7 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance::
         
         forAll(moment, cellI)
         {
-            if (sigma[cellI]!=0 && primaryAbscissa[cellI]!=0)
+            if (sigma[cellI]!=0 && primaryAbscissa[cellI]!=0 && characteristic[cellI]!=0)
             {
                 /*scalar m2 = node.primaryWeight()*characteristic/2.0*
                     (128.0/225.0*pow(convectionModel_->characteristic(characteristic/2.0),order)*quadrature_.momentInverter()->distribution(characteristic/2.0,primaryAbscissa,sigma[cellI])
@@ -566,6 +567,10 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
             moment.dimensions()*dimVol/dimTime
         )
     );
+    
+    //const volScalarField& rho = mesh_.lookupObject<volScalarField>("rho");
+    
+    //Info << "rho : " << rho << endl;
     
     //Info << "aggregation :" << max(aggregationSource(moment).ref()) << endl;
     
