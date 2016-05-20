@@ -47,7 +47,7 @@ forAll(mixingWeights, nodei)
 
     forAll(mixingMoments[0], celli)
     {
-        univariateMomentSet momentsToInvert(4, 0, "RPlus");
+        univariateMomentSet momentsToInvert(4, 0.0, "Gauss", "RPlus");
         
         forAll(mixingMoments, mi)
         {

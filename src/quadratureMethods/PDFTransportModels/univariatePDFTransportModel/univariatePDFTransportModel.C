@@ -475,7 +475,7 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
         // Calculate k1 for all moments
         forAll(moments_, mi)
         {
-            k1[mi] = h_*momentSourceODE(moments_[mi]);
+            k1[mi] = h_*momentSource(moments_[mi]);
             moments_[mi] == momentsOld[mi] + k1[mi];
         }
         
@@ -484,7 +484,7 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
         // Calculate k2 for all moments
         forAll(moments_, mi)
         {
-            k2[mi] = h_*momentSourceODE(moments_[mi]);
+            k2[mi] = h_*momentSource(moments_[mi]);
             moments_[mi] == momentsOld[mi] + (k1[mi] + k2[mi])/4.0;
         }
     
@@ -493,7 +493,7 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
         // calculate k3 and new moments for all moments
         forAll(moments_, mi)
         {
-            k3[mi] = h_*momentSourceODE(moments_[mi]);
+            k3[mi] = h_*momentSource(moments_[mi]);
             
             // Second order accurate, k3 only used for error estimation
             moments_[mi] == momentsOld[mi] + (k1[mi] + k2[mi] + 4.0*k3[mi])/6.0;
@@ -590,25 +590,7 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solve()
             odeSource.set
             (
                 mi,
-                new volScalarField
-                (
-                    IOobject
-                    (
-                        "zeroField",
-                        U_.mesh().time().timeName(),
-                        U_.mesh(),
-                        IOobject::NO_READ,
-                        IOobject::NO_WRITE,
-                        false
-                    ),
-                    U_.mesh(),
-                    dimensionedScalar
-                    (
-                        "zero",
-                        moments_[mi].dimensions()/dimTime,
-                        0.0
-                    )
-                )
+                momentSource(quadrature_.moments()[mi])
             );
             moments_[mi] == quadrature_.moments()[mi];
         }
@@ -629,12 +611,12 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solve()
             new fvScalarMatrix
             (
                 fvm::ddt(m)
-              + physicalSpaceConvection(m)
+              + fvm::div(phi_, m, "div(phi,moment)")
+              //+ physicalSpaceConvection(m)
               - momentDiffusion(m)
               ==
                 odeSource[momenti]
-              + momentSource(m)
-              + interfaceSource(m)
+              //+ interfaceSource(m)
             )
         );
     }

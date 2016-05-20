@@ -135,12 +135,6 @@ protected:
             const volUnivariateMoment& m 
         ) = 0;
         
-        //- Calculate source terms for ODE
-        virtual tmp<volScalarField> momentSourceODE
-        (
-            const volUnivariateMoment& m 
-        ) = 0;
-        
         tmp<volScalarField> interfaceSource
         (
             const volUnivariateMoment& m

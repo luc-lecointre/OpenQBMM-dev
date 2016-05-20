@@ -281,7 +281,6 @@ Foam::populationBalanceSubModels::aggregationKernels::FNP::Ka
         }
         else
         {
-            Info<< mixtureFraction[cellI] << endl;
             scalar p = max(1.0, abscissa1[cellI]);
             scalar i = max(1.0, abscissa2[cellI]);
             

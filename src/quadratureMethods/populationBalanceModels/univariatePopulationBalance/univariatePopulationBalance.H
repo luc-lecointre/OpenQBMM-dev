@@ -69,28 +69,16 @@ class univariatePopulationBalance
 
         //- Switch indicating the status of the aggregation model
         Switch aggregation_;
-
-        //- Switch indicating if aggregation is solved with ODE
-        Switch aggODE_;
         
         //- Switch indicating the status of the breakup model
         Switch breakup_;
         
-        //- Switch indicating if breakup is solved with ODE
-        Switch brkODE_;
-        
         //- Switch indicating the status of the growth model
         Switch growth_;
-        
-        //- Switch indicating if growth is solved with ODE
-        Switch grwODE_;
         
         //- Switch indicating the status of the nucleation model
         Switch nucleation_;
 
-        //- Switch indicating if nucleation is solved with ODE
-        Switch nucODE_;
-        
         //- Aggregation kernel model
         autoPtr
         <
@@ -153,12 +141,6 @@ class univariatePopulationBalance
         virtual tmp<volScalarField> momentSource
         (
             const volUnivariateMoment& moment
-        );
-        
-        //- Calculate source terms for ODE
-        virtual tmp<volScalarField> momentSourceODE
-        (
-            const volUnivariateMoment& m 
         );
         
 public:

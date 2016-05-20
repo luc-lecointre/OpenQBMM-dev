@@ -60,13 +60,9 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
     populationBalanceModel(name, dict, U, phi),
     name_(name),
     aggregation_(dict.lookup("aggregation")),
-    aggODE_(dict.subDict("odeSourceTerms").lookup("aggregation")),
     breakup_(dict.lookup("breakup")),
-    brkODE_(dict.subDict("odeSourceTerms").lookup("breakup")),
     growth_(dict.lookup("growth")),
-    grwODE_(dict.subDict("odeSourceTerms").lookup("growth")),
     nucleation_(dict.lookup("nucleation")),
-    nucODE_(dict.subDict("odeSourceTerms").lookup("nucleation")),
     aggregationKernel_
     (
         Foam::populationBalanceSubModels::aggregationKernel::New
@@ -110,15 +106,7 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
             U.mesh()
         )
     )
-{
-    if (!ode())
-    {
-        aggODE_ = 0;
-        brkODE_ = 0;
-        nucODE_ = 0;
-        grwODE_ = 0;
-    }
-}
+{}
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
@@ -161,7 +149,7 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
 
         return aSource;
     }
-
+    
     label order = moment.order();
 
     volScalarField& aggregationSource = aSource.ref();
@@ -192,7 +180,7 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
 
                     const volScalarField& sAbscissa2
                         = node2.secondaryAbscissae()[sNode2i];
-
+                        
                     tmp<volScalarField> aggInnerSum =
                         pWeight1*sWeight1*
                         (
@@ -384,49 +372,10 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
         )
     );
     mSource.ref() ==
-        pos(-aggODE_)*aggregationSource(moment)
-      + pos(-brkODE_)*breakupSource(moment)
-      + pos(-grwODE_)*phaseSpaceConvection(moment)
-      + pos(-nucODE_)*nucleationModel_->nucleationSource(moment);
-
-    return mSource;
-}
-
-Foam::tmp<Foam::volScalarField>
-Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
-::momentSourceODE
-(
-    const volUnivariateMoment& moment
-)
-{
-    tmp<volScalarField> mSource
-    (
-        new volScalarField
-        (
-            IOobject
-            (
-                "mSource",
-                moment.mesh().time().timeName(),
-                moment.mesh(),
-                IOobject::NO_READ,
-                IOobject::NO_WRITE,
-                false
-            ),
-            moment.mesh(),
-            dimensionedScalar
-            (
-                "mSource",
-                moment.dimensions()/dimTime,
-                0.0
-            )
-        )
-    );
-    
-    mSource.ref() ==
-        aggODE_*aggregationSource(moment)
-      + brkODE_*breakupSource(moment)
-      + grwODE_*phaseSpaceConvection(moment)
-      + nucODE_*nucleationModel_->nucleationSource(moment);
+        aggregationSource(moment)
+      + breakupSource(moment)
+      + phaseSpaceConvection(moment)
+      + nucleationModel_->nucleationSource(moment);
 
     return mSource;
 }
