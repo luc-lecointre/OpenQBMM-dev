@@ -118,7 +118,7 @@ Foam::tmp<Foam::volScalarField> Foam::populationBalanceSubModels::convectionMode
 {
     volScalarField kReaction = Arrhenius(2.20e6,0.0,31.38); //reaction : Soot* + O2 -> Soot-H + 2CO + arrhenius law
     
-    volScalarField kOH = Arrhenius(1.0e4,0.0,8.4); //reaction Soot-H + OH -> Soot-H + C0 + reaction probability 0.13 ???
+    volScalarField kOH = Arrhenius(1.0e10,0.0,8.4); //reaction Soot-H + OH -> Soot-H + C0 + reaction probability 0.13 ???
     
     const volScalarField& concentration_O2(mesh_.lookupObject<volScalarField>("O2"));
     

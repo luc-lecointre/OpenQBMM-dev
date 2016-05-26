@@ -8,7 +8,7 @@
 FoamFile
 {
     version     2.0;
-    format      binary;
+    format      ascii;
     class       volScalarField;
     location    "0";
     object      O2;
@@ -21,26 +21,36 @@ internalField   uniform 0;
 
 boundaryField
 {
+    fuel
+    {
+        type            fixedValue;
+        value           nonuniform 0();
+    }
     wall
     {
         type            zeroGradient;
     }
-    fuel
-    {
-        type            fixedValue;
-        value           uniform 0.1914;
-    }
     outlet
     {
         type            inletOutlet;
-        inletValue      nonuniform 
-0
-;
-        value           nonuniform 
-0
-;
+        inletValue      uniform 0;
+        value           uniform 0;
+    }
+    frontAndBack
+    {
+        type            empty;
     }
     procBoundary0to1
+    {
+        type            processor;
+        value           uniform 0;
+    }
+    procBoundary0to2
+    {
+        type            processor;
+        value           uniform 0;
+    }
+    procBoundary0to3
     {
         type            processor;
         value           uniform 0;

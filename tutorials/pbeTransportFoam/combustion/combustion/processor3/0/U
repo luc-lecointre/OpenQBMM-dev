@@ -8,7 +8,7 @@
 FoamFile
 {
     version     2.0;
-    format      binary;
+    format      ascii;
     class       volVectorField;
     location    "0";
     object      U;
@@ -21,20 +21,27 @@ internalField   uniform (0 0 0);
 
 boundaryField
 {
-    wall
-    {
-        type            zeroGradient;
-    }
     fuel
     {
         type            fixedValue;
-        value           nonuniform 
-0
-;
+        value           uniform (0 0 0.1055);
+    }
+    wall
+    {
+        type            slip;
     }
     outlet
     {
         type            pressureInletOutletVelocity;
+        value           uniform (0 0 0);
+    }
+    frontAndBack
+    {
+        type            empty;
+    }
+    procBoundary3to0
+    {
+        type            processor;
         value           uniform (0 0 0);
     }
     procBoundary3to2
