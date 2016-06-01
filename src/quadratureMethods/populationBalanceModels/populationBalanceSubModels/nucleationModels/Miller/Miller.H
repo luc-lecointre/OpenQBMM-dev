@@ -65,7 +65,7 @@ private:
         string PAH_;
 
         //- Number of carbon atoms in PAH species
-        string nCarbonPAH_;
+        label nCarbonPAH_;
 
         //- Soot density
         dimensionedScalar rhoSoot_;

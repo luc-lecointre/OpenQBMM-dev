@@ -158,7 +158,7 @@ Foam::scalar Foam::lognormalEQMOM::sigmaMax(univariateMomentSet& moments)
     if (nRealizableMoments > 3)
     {
         scalar sigmaZeta2 =
-            sqrt(2.0*log(sqrt(moments[1]*moments[3]/(sqr(moments[2])))));
+            sqrt(max(SMALL, 2.0*log(sqrt(moments[1]*moments[3]/(sqr(moments[2]))))));
 
         return min(sigmaZeta1, sigmaZeta2);
     }

@@ -150,8 +150,8 @@ Foam::tmp<Foam::volScalarField> Foam::populationBalanceSubModels::aggregationKer
 ) const
 {   
     
-    volScalarField a1=max(abscissa1*1e-27,abscissa0_);
-    volScalarField a2=max(abscissa2*1e-27,abscissa0_);
+    volScalarField a1=max(abscissa1*1.0e-27,abscissa0_);
+    volScalarField a2=max(abscissa2*1.0e-27,abscissa0_);
     
     volScalarField  dc1 = dc(a1);
     volScalarField  dc2 = dc(a2);

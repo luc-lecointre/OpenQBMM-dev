@@ -118,13 +118,17 @@ public:
     // Member Functions
 
         //- Caracteristic oxidation equation
-        virtual tmp<volScalarField> characteristic
+        virtual scalar characteristic
         (
-            const volScalarField& abscissa
+            const scalar& abscissa,
+            const label& cellI
         ) = 0 ;
         
         //- Caracteristic oxidation equation
-        virtual tmp<volScalarField> characteristic() = 0 ;
+        virtual scalar characteristic
+        (
+            const label& cellI
+        ) = 0 ;
 };
 
 

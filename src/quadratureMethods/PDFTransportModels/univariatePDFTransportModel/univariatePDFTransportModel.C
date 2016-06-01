@@ -139,15 +139,17 @@ Foam::PDFTransportModels::univariatePDFTransportModel::physicalSpaceConvection
 
 void Foam::PDFTransportModels::univariatePDFTransportModel::solve()
 {
+    phaseSpaceConvection();
+    
     surfaceScalarField phiOwn("phiOwn", fvc::interpolate(U_) & mesh_.Sf());
     surfaceScalarField phiNei("phiNei", phiOwn);
     updatePhysicalSpaceConvection(phiOwn, phiNei);
-
+    
     // Solve moment transport equations
     forAll(quadrature_.moments(), mI)
     {
         volUnivariateMoment& m = quadrature_.moments()[mI];
-
+        
         fvScalarMatrix momentEqn
         (
             fvm::ddt(m)
@@ -155,16 +157,18 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solve()
           - momentDiffusion(m)
           ==
             momentSource(m)
-          + phaseSpaceConvection(m)
-          //+ growthConvection(m)
         ); 
 
         momentEqn.relax();
         momentEqn.solve();
         
     }
+    
+    //Info << quadrature_.moments() << endl; 
 
     quadrature_.updateQuadrature();
+    
+    phaseSpaceConvection();
 }
 
 

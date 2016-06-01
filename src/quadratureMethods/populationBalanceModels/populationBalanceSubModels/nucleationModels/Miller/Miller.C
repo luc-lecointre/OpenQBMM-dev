@@ -62,7 +62,7 @@ Foam::populationBalanceSubModels::nucleationModels::Miller::Miller
         0.012
     ),
     PAH_(dict.lookup("PAH")),
-    nCarbonPAH_(dict.lookup("nCarbonPAH")),
+    nCarbonPAH_(readScalar(dict.lookup("nCarbonPAH"))),
     rhoSoot_(
         "rhoSoot",
         Foam::dimensionSet(1,-3,0,0,0,0,0),
@@ -124,24 +124,6 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
 {
     const fluidThermo& flThermo = mesh_.lookupObject<fluidThermo>(basicThermo::dictName);
     
-    tmp<volScalarField> Miller
-    (
-        new volScalarField
-        (
-            IOobject
-            (
-                "Miller",
-                mesh_.time().timeName(),
-                mesh_,
-                IOobject::NO_READ,
-                IOobject::NO_WRITE,
-                false
-            ),
-            mesh_,
-            dimensionedScalar("zero", dimless, 0.0)
-        )
-    );
-    
     volScalarField V
     (
         IOobject
@@ -161,56 +143,24 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
         V[cellI]=mesh_.V()[cellI];
     }
     
-    List<word> tokens;
-    List<label> nCarbon;
-    
-    string::size_type lastPos = PAH_.find_first_not_of(" ", 0);
-    string::size_type pos     = PAH_.find_first_of(" ", lastPos);
-
-    while (string::npos != pos || string::npos != lastPos)
-    {
-        tokens.append(PAH_.substr(lastPos, pos - lastPos));
-        lastPos = PAH_.find_first_not_of(" ", pos);
-        pos = PAH_.find_first_of(" ", lastPos);
-    }
-    
-    lastPos = nCarbonPAH_.find_first_not_of(" ", 0);
-    pos     = nCarbonPAH_.find_first_of(" ", lastPos);
-
-    while (string::npos != pos || string::npos != lastPos)
-    {
-        nCarbon.append(stoi(nCarbonPAH_.substr(lastPos, pos - lastPos)));
-        lastPos = nCarbonPAH_.find_first_not_of(" ", pos);
-        pos = nCarbonPAH_.find_first_of(" ", lastPos);
-    }
-    
-    forAll (tokens, specie)
-    {
-        dimensionedScalar abscissaNucleation = volume(4*nCarbon[specie])*1.0e27; //[nm^3]
+    dimensionedScalar abscissaNucleation = volume(4*nCarbonPAH_)*1.0e27; //[nm^3]
         
-        //Info << "abscissaNucleation" << tokens[specie] << " : " << abscissaNucleation.value() << endl;
+    //Info << "abscissaNucleation" << tokens[specie] << " : " << abscissaNucleation.value() << endl;
         
-        dimensionedScalar MPAH (
-            "PAHMolarMass",
-            Foam::dimensionSet(1,0,0,0,-1,0,0),
-            0.012*nCarbon[specie]+0.010
-        );
+    dimensionedScalar MPAH (
+        "PAHMolarMass",
+        Foam::dimensionSet(1,0,0,0,-1,0,0),
+        0.202
+    );
     
-        const volScalarField& pahConcentration(mesh_.lookupObject<volScalarField>(tokens[specie]));
+    const volScalarField& pahConcentration(mesh_.lookupObject<volScalarField>(PAH_));
     
-        volScalarField jT = 0.5*Kfm(2.0*nCarbon[specie])*sqr(Foam::constant::physicoChemical::NA*pahConcentration*flThermo.rho()/MPAH)*V*pow(abscissaNucleation,moment.order());
+    tmp<volScalarField> jT = 0.5*Kfm(2.0*nCarbonPAH_)*sqr(Foam::constant::physicoChemical::NA*pahConcentration*flThermo.rho()/MPAH)*V*pow(abscissaNucleation,moment.order());
         
-        Miller.ref().dimensions().reset
-        (
-            jT.dimensions()
-        );
-
-        Miller.ref() = Miller.ref() + jT;
-    }
-    
+    //Info << V << endl;
     //Miller.ref().dimensions().reset(inv(dimTime*pow3(dimLength)));
     
-    return Miller;
+    return jT;
 }
 
 // ************************************************************************* //

@@ -88,10 +88,7 @@ class turbulentMixing
         );
         
         //- Convect moments in phase space
-        virtual tmp<volScalarField> phaseSpaceConvection
-        (
-            const volUnivariateMoment& moment
-        );
+        virtual void phaseSpaceConvection();
 
         //- Calculate source terms
         virtual tmp<fvScalarMatrix> momentSource

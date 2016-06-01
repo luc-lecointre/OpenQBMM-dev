@@ -120,33 +120,11 @@ Foam::PDFTransportModels::mixingModels::turbulentMixing
     return gSource;
 }
 
-Foam::tmp<Foam::volScalarField>
+void
 Foam::PDFTransportModels::mixingModels::turbulentMixing
 ::phaseSpaceConvection
-(
-    const volUnivariateMoment& moment
-)
-{
-    tmp<volScalarField> cSource
-    (
-        new volScalarField
-        (
-            IOobject
-            (
-                "cSource",
-                U_.mesh().time().timeName(),
-                U_.mesh(),
-                IOobject::NO_READ,
-                IOobject::NO_WRITE,
-                false
-            ),
-            U_.mesh(),
-            dimensionedScalar("zero", moment.dimensions()/dimTime, 0.0)
-        )
-    );
-
-    return cSource;
-}
+()
+{}
 
 Foam::tmp<Foam::volScalarField>
 Foam::PDFTransportModels::mixingModels::turbulentMixing
