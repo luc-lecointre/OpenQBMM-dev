@@ -93,10 +93,7 @@ public:
     // Constructors
 
         //- Construct from components
-        breakupKernel
-        (
-            const dictionary& dict
-        );
+        breakupKernel(const dictionary& dict);
 
 
     // Selectors

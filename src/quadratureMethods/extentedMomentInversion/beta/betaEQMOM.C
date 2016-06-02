@@ -85,15 +85,8 @@ void Foam::betaEQMOM::momentsStarToMoments
 
     if (nMom >= 12)
     {
-        FatalErrorIn
-        (
-            "Foam::betaEQMOM::momentsStarToMoments\n"
-            "(\n"
-            "   scalar sigma,\n"
-            "   univariateMomentSet& moments,\n"
-            "   const univariateMomentSet& momentsStar\n"
-            ")"
-        )   << "Moment transformation not implemented."
+        FatalErrorInFunction
+            << "Moment transformation not implemented."
             << abort(FatalError);
     }
 
@@ -184,15 +177,8 @@ void Foam::betaEQMOM::momentsToMomentsStar
 
     if (nMom >= 12)
     {
-        FatalErrorIn
-        (
-            "Foam::betaEQMOM::momentsToMomentsStar\n"
-            "(\n"
-            "   scalar sigma,\n"
-            "   const univariateMomentSet& moments,\n"
-            "   univariateMomentSet& momentsStar\n"
-            ")"
-        )   << "The number of moments is too large. The maximum number of"
+        FatalErrorInFunction
+            << "The number of moments is too large. The maximum number of"
             << "moments allowed with the beta kernel density function is 11."
             << "Moment transformation not implemented."
             << abort(FatalError);
@@ -311,7 +297,7 @@ Foam::scalar Foam::betaEQMOM::m2N
 
     if (momentsStar.nRealizableMoments() >= nMomentsStar - 1)
     {
-        univariateMomentSet m(nMomentsStar, 0.0, "01");
+        univariateMomentSet m(nMomentsStar, 0.0, "Gauss", "01");
         momentsStarToMoments(sigma, m, momentsStar);
 
         return m.last();
@@ -334,8 +320,8 @@ void Foam::betaEQMOM::recurrenceRelation
 
     a[0] = (beta - alpha)/(alpha + beta + 2.0);
 
-    b[0] = (pow(2.0, alpha + beta + 1.0)*gamma(alpha + 1.0)*gamma(beta + 1.0))
-            /gamma(alpha + beta + 2.0);
+    b[0] = exp((alpha + beta + 1.0)*log(2.0) + lgamma(alpha + 1.0)
+            + lgamma(beta + 1.0) - lgamma(alpha + beta + 2.0));
 
     a[1] = (sqr(beta) - sqr(alpha))/((alpha + beta + 2.0)*(alpha + beta + 4.0));
 
@@ -346,7 +332,7 @@ void Foam::betaEQMOM::recurrenceRelation
     {
         nab = 2.0*scalar(i) + alpha + beta;
 
-        a[i] = (sqr(beta) - sqr(alpha))/(nab*(nab + 2));
+        a[i] = (sqr(beta) - sqr(alpha))/(nab*(nab + 2.0));
 
         b[i] = (4.0*(scalar(i) + alpha)*(scalar(i) + beta)*scalar(i)
                 *(scalar(i)+ alpha + beta))/(sqr(nab)*(nab + 1.0)*(nab - 1.0));

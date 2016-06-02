@@ -89,10 +89,7 @@ public:
     // Constructors
 
         //- Construct from components
-        LuoSvendsen
-        (
-            const dictionary& dict
-        );
+        LuoSvendsen(const dictionary& dict);
 
 
     //- Destructor

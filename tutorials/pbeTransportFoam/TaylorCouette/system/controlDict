@@ -16,12 +16,17 @@ FoamFile
 
 application     pbeTransportFoam;
 
+<<<<<<< HEAD
 startFrom       startTime;
+=======
+startFrom       latestTime;
+>>>>>>> 732c5e01c23d931aeea9dd093ce6d7f6b0e3c5bf
 
 startTime       0;
 
 stopAt          endTime;
 
+<<<<<<< HEAD
 endTime         5000;
 
 deltaT          10;
@@ -29,6 +34,15 @@ deltaT          10;
 writeControl    adjustableRunTime;
 
 writeInterval   10;
+=======
+endTime         50000;
+
+deltaT          1;
+
+writeControl    runTime;
+
+writeInterval   100;
+>>>>>>> 732c5e01c23d931aeea9dd093ce6d7f6b0e3c5bf
 
 purgeWrite      10;
 
@@ -44,6 +58,7 @@ timePrecision   12;
 
 runTimeModifiable true;
 
+<<<<<<< HEAD
 adjustTimeStep  yes;
 
 maxCo           0.9;
@@ -88,6 +103,11 @@ functions
     }
 
     d43Average
+=======
+functions
+{
+    epsilonVolAverage
+>>>>>>> 732c5e01c23d931aeea9dd093ce6d7f6b0e3c5bf
     {
         functionObjectLibs ("libutilityFunctionObjects.so");
         type coded;
@@ -95,6 +115,7 @@ functions
         outputControl timeStep;
         code
         #{
+<<<<<<< HEAD
         const volScalarField& m3 
                 = mesh().lookupObject<volScalarField>("moment.3.populationBalance");
                 
@@ -102,21 +123,38 @@ functions
                 = mesh().lookupObject<volScalarField>("moment.4.populationBalance");
                 
         volScalarField d43(m4/m3);
+=======
+        const volScalarField& epsilon
+                = mesh().lookupObject<volScalarField>("epsilon");
+>>>>>>> 732c5e01c23d931aeea9dd093ce6d7f6b0e3c5bf
 
         scalar volAverage = 0;
         scalar totalVolume = 0;
 
+<<<<<<< HEAD
         forAll (d43, cellI)
+=======
+        forAll (epsilon, cellI)
+>>>>>>> 732c5e01c23d931aeea9dd093ce6d7f6b0e3c5bf
         {
             totalVolume += mesh().V()[cellI];
         }
 
+<<<<<<< HEAD
         forAll (d43, cellI)
         {
             volAverage += d43[cellI]*mesh().V()[cellI]/totalVolume;
         }
 
         Info<<"Volume averaged normalized d43: " << volAverage/(2.0e-6) << endl;
+=======
+        forAll (epsilon, cellI)
+        {
+            volAverage += epsilon[cellI]*mesh().V()[cellI]/totalVolume;
+        }
+
+        Info<<"Volume averaged epsilon: " << volAverage << endl;
+>>>>>>> 732c5e01c23d931aeea9dd093ce6d7f6b0e3c5bf
 
         #};
     }

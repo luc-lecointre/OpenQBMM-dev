@@ -75,11 +75,8 @@ public:
     // Constructors
 
         //- Construct from components
-        exponentialBreakup
-        (
-            const dictionary& dict
-        );
-
+        exponentialBreakup(const dictionary& dict);
+        
 
     //- Destructor
     virtual ~exponentialBreakup();

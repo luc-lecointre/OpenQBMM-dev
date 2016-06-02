@@ -24,11 +24,9 @@ bool Foam::univariateMomentSet::isDegenerate()
 {
     // Checking if moments of order higher than zero are null
     // The case when m0 = 0 is already managed
-    Info << "Checking degenerate case" << endl;
-
     for (label momentI = 1; momentI < nMoments_; momentI++)
     {
-        if ((*this)[momentI] != 0.0)
+        if (mag((*this)[momentI]) > SMALL)
         {
             degenerate_ = false;
 
@@ -118,10 +116,16 @@ const Foam::scalarDiagonalMatrix& Foam::univariateMomentSet::abscissae() const
     return abscissae_;
 }
 
-//- Return primary quadrature abscissae
+//- Return support of the measure associated to the moment set
 const Foam::word Foam::univariateMomentSet::support() const
 {
     return support_;
+}
+
+//- Return type of quadrature
+const Foam::word Foam::univariateMomentSet::quadratureType() const
+{
+    return quadratureType_;
 }
 
 // ************************************************************************* //

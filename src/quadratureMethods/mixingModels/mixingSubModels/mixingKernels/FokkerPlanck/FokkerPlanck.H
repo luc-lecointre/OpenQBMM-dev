@@ -89,7 +89,7 @@ public:
     // Member Functions
 
         //- Aggregation kernel
-        virtual tmp<fvScalarMatrix> K
+        virtual tmp<volScalarField> K
         (
             const volUnivariateMoment& moment,
             const volUnivariateMomentFieldSet& moments

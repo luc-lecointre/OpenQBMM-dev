@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2015 Alberto Passalacqua
+    \\  /    A nd           | Copyright (C) 2016 Alberto Passalacqua
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,7 +25,6 @@ License
 
 #include "noNucleation.H"
 #include "addToRunTimeSelectionTable.H"
-#include "turbulentFluidThermoModel.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -50,51 +49,48 @@ namespace nucleationModels
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::populationBalanceSubModels::nucleationModels::noNucleation
-::noNucleation
+Foam::populationBalanceSubModels::nucleationModels::noNucleation::noNucleation
 (
     const dictionary& dict,
     const fvMesh& mesh
 )
 :
-    nucleationModel(dict,mesh)
+    nucleationModel(dict, mesh)
 {}
 
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-Foam::populationBalanceSubModels::nucleationModels::noNucleation
-::~noNucleation()
+
+Foam::populationBalanceSubModels::nucleationModels::noNucleation::~noNucleation()
 {}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 Foam::tmp<Foam::volScalarField>
-Foam::populationBalanceSubModels::nucleationModels::noNucleation::nucleationSource
-(
-    const volUnivariateMoment& moment
-) 
-{   
-    tmp<volScalarField> noNucleation
+Foam::populationBalanceSubModels::nucleationModels::noNucleation
+::nucleationSource(const volUnivariateMoment& moment)
+{
+    tmp<volScalarField> noNucl
     (
         new volScalarField
         (
             IOobject
             (
-                "noNucleation",
-                mesh_.time().timeName(),
-                mesh_,
+                "noNucl",
+                moment.mesh().time().timeName(),
+                moment.mesh(),
                 IOobject::NO_READ,
                 IOobject::NO_WRITE,
                 false
             ),
-            mesh_,
-            dimensionedScalar("moment", moment.dimensions()/dimTime , 0.0)
+            moment.mesh(),
+            dimensionedScalar("zero", moment.dimensions()/dimTime, 0.0)
         )
-    );    
-    
-    return noNucleation;
+    );
+
+    return noNucl;
 }
 
 // ************************************************************************* //

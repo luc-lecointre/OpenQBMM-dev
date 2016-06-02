@@ -34,7 +34,7 @@ Foam::univariateQuadratureApproximation::univariateQuadratureApproximation
 (
     const word& name,
     const fvMesh& mesh,
-    const word support
+    const word& support
 )
 :
     IOdictionary
@@ -91,14 +91,9 @@ Foam::univariateQuadratureApproximation::univariateQuadratureApproximation
 
     if (nMoments_ != 2*nPrimaryNodes_ + 1)
     {
-        FatalErrorIn
-        (
-            "Foam::univariateQuadratureApproximation::univariateQuadratureApproximation\n"
-            "(\n"
-            "    const fvMesh& mesh\n"
-            ")"
-        )   << "Number of moments from dictionary different from number\n"
-            << "of moments calculated from primary quadrature nodes."
+        FatalErrorInFunction
+            << "Number of moments from dictionary different from number" << nl
+            << "    of moments calculated from primary quadrature nodes."
             << abort(FatalError);
     }
 
@@ -117,13 +112,13 @@ Foam::univariateQuadratureApproximation::univariateQuadratureApproximation
     PtrList<extendedSurfaceScalarNode>& nodesOwn = nodesOwn_();
 
     // Populating interpolated nodes.
-    forAll(nodes, pNodeI)
+    forAll(nodes, pNodei)
     {
-        extendedVolScalarNode& node(nodes[pNodeI]);
+        extendedVolScalarNode& node(nodes[pNodei]);
 
         nodesNei.set
         (
-            pNodeI,
+            pNodei,
             new extendedSurfaceScalarNode
             (
                 node.name() + "Nei",
@@ -137,7 +132,7 @@ Foam::univariateQuadratureApproximation::univariateQuadratureApproximation
 
         nodesOwn.set
         (
-            pNodeI,
+            pNodei,
             new extendedSurfaceScalarNode
             (
                 node.name() + "Own",
@@ -149,18 +144,18 @@ Foam::univariateQuadratureApproximation::univariateQuadratureApproximation
             )
         );
 
-        for (label sNodeI = 0; sNodeI < nSecondaryNodes_; sNodeI++)
+        for (label sNodei = 0; sNodei < nSecondaryNodes_; sNodei++)
         {
 
             // Commented because units of the weight would be considered twice
             // in calculations due to the product with the primary weight
             //
-            //    node.secondaryWeights()[sNodeI].dimensions().reset
+            //    node.secondaryWeights()[sNodei].dimensions().reset
             //    (
             //        moments_[0].dimensions();
             //    );
 
-            node.secondaryAbscissae()[sNodeI].dimensions().reset
+            node.secondaryAbscissae()[sNodei].dimensions().reset
             (
                 moments_[1].dimensions()/moments_[0].dimensions()
             );
@@ -168,29 +163,30 @@ Foam::univariateQuadratureApproximation::univariateQuadratureApproximation
     }
 
     // Setting face values of moments
-    forAll(momentsNei_, mI)
+
+    forAll(momentsNei_, momenti)
     {
         momentsNei_.set
         (
-            mI,
+            momenti,
             new Foam::surfaceUnivariateMoment
             (
                 name_,
-                moments_[mI].cmptOrders(),
+                moments_[momenti].cmptOrders(),
                 nodesNei_,
-                fvc::interpolate(moments_[mI])
+                fvc::interpolate(moments_[momenti])
             )
         );
 
         momentsOwn_.set
         (
-            mI,
+            momenti,
             new Foam::surfaceUnivariateMoment
             (
                 name_,
-                moments_[mI].cmptOrders(),
+                moments_[momenti].cmptOrders(),
                 nodesOwn_,
-                fvc::interpolate(moments_[mI])
+                fvc::interpolate(moments_[momenti])
             )
         );
     }
@@ -251,11 +247,11 @@ void Foam::univariateQuadratureApproximation::interpolateNodes()
     PtrList<extendedSurfaceScalarNode>& nodesNei = nodesNei_();
     PtrList<extendedSurfaceScalarNode>& nodesOwn = nodesOwn_();
 
-    forAll(nodes, pNodeI)
+    forAll(nodes, pNodei)
     {
-        const extendedVolScalarNode& node(nodes[pNodeI]);
-        extendedSurfaceScalarNode& nodeOwn(nodesOwn[pNodeI]);
-        extendedSurfaceScalarNode& nodeNei(nodesNei[pNodeI]);
+        const extendedVolScalarNode& node(nodes[pNodei]);
+        extendedSurfaceScalarNode& nodeOwn(nodesOwn[pNodei]);
+        extendedSurfaceScalarNode& nodeNei(nodesNei[pNodei]);
 
         nodeOwn.primaryWeight() =
             fvc::interpolate(node.primaryWeight(), own, "reconstruct(weight)");
@@ -295,37 +291,37 @@ void Foam::univariateQuadratureApproximation::interpolateNodes()
                 "reconstruct(sigma)"
             );
 
-        for (label sNodeI = 0; sNodeI < nSecondaryNodes_; sNodeI++)
+        for (label sNodei = 0; sNodei < nSecondaryNodes_; sNodei++)
         {
             // Setting interpolated secondary nodes
-            nodeOwn.secondaryWeights()[sNodeI] =
+            nodeOwn.secondaryWeights()[sNodei] =
                 fvc::interpolate
                 (
-                    node.secondaryWeights()[sNodeI],
+                    node.secondaryWeights()[sNodei],
                     own,
                     "reconstruct(weight)"
                 );
 
-            nodeOwn.secondaryAbscissae()[sNodeI] =
+            nodeOwn.secondaryAbscissae()[sNodei] =
                 fvc::interpolate
                 (
-                    node.secondaryAbscissae()[sNodeI],
+                    node.secondaryAbscissae()[sNodei],
                     own,
                     "reconstruct(abscissa)"
                 );
 
-            nodeNei.secondaryWeights()[sNodeI] =
+            nodeNei.secondaryWeights()[sNodei] =
                 fvc::interpolate
                 (
-                    node.secondaryWeights()[sNodeI],
+                    node.secondaryWeights()[sNodei],
                     nei,
                     "reconstruct(weight)"
                 );
 
-            nodeNei.secondaryAbscissae()[sNodeI] =
+            nodeNei.secondaryAbscissae()[sNodei] =
                 fvc::interpolate
                 (
-                    node.secondaryAbscissae()[sNodeI],
+                    node.secondaryAbscissae()[sNodei],
                     nei,
                     "reconstruct(abscissa)"
                 );
@@ -338,49 +334,55 @@ void Foam::univariateQuadratureApproximation::updateBoundaryQuadrature()
 {
     // Recover reference to boundaryField of zero-order moment.
     // All moments will share the same BC types at a given boundary.
-    volScalarField::GeometricBoundaryField& bf = moments_().boundaryField();
+    const volScalarField::Boundary& bf = moments_().boundaryFieldRef();
 
-    forAll(bf, patchI)
+    forAll(bf, patchi)
     {
-        fvPatchScalarField& m0Patch = bf[patchI];
+        const fvPatchScalarField& m0Patch = bf[patchi];
 
         if (m0Patch.fixesValue())
         {
-            forAll(m0Patch, faceI)
+            forAll(m0Patch, facei)
             {
-                univariateMomentSet momentsToInvert(nMoments_, 0, support_);
+                univariateMomentSet momentsToInvert
+                (
+                    nMoments_,
+                    0.0,
+                    "Gauss",
+                    support_
+                );
 
                 // Copying moments from a face
-                forAll(momentsToInvert, mI)
+                forAll(momentsToInvert, momenti)
                 {
-                    momentsToInvert[mI]
-                        = moments_[mI].boundaryField()[patchI][faceI];
+                    momentsToInvert[momenti]
+                        = moments_[momenti].boundaryField()[patchi][facei];
                 }
 
                 // Inverting them
                 momentInverter_->invert(momentsToInvert);
 
                 // Copying quadrature data to boundary face
-                for (label pNodeI = 0; pNodeI < nPrimaryNodes_; pNodeI++)
+                for (label pNodei = 0; pNodei < nPrimaryNodes_; pNodei++)
                 {
-                    extendedVolScalarNode& node = nodes_()[pNodeI];
+                    extendedVolScalarNode& node = nodes_()[pNodei];
 
-                    node.primaryWeight().boundaryField()[patchI][faceI]
-                        = momentInverter_->primaryWeights()[pNodeI];
+                    node.primaryWeight().boundaryFieldRef()[patchi][facei]
+                        = momentInverter_->primaryWeights()[pNodei];
 
-                    node.primaryAbscissa().boundaryField()[patchI][faceI]
-                        = momentInverter_->primaryAbscissae()[pNodeI];
+                    node.primaryAbscissa().boundaryFieldRef()[patchi][facei]
+                        = momentInverter_->primaryAbscissae()[pNodei];
 
-                    node.sigma().boundaryField()[patchI][faceI]
+                    node.sigma().boundaryFieldRef()[patchi][facei]
                         = momentInverter_->sigma();
 
-                    for (label sNodeI = 0; sNodeI < nSecondaryNodes_; sNodeI++)
+                    for (label sNodei = 0; sNodei < nSecondaryNodes_; sNodei++)
                     {
-                        node.secondaryWeights()[sNodeI].boundaryField()[patchI][faceI]
-                            = momentInverter_->secondaryWeights()[pNodeI][sNodeI];
+                        node.secondaryWeights()[sNodei].boundaryFieldRef()[patchi][facei]
+                            = momentInverter_->secondaryWeights()[pNodei][sNodei];
 
-                        node.secondaryAbscissae()[sNodeI].boundaryField()[patchI][faceI]
-                            = momentInverter_->secondaryAbscissae()[pNodeI][sNodeI];
+                        node.secondaryAbscissae()[sNodei].boundaryFieldRef()[patchi][facei]
+                            = momentInverter_->secondaryAbscissae()[pNodei][sNodei];
                     }
                 }
 
@@ -395,14 +397,20 @@ void Foam::univariateQuadratureApproximation::updateQuadrature()
 
     PtrList<extendedVolScalarNode>& nodes(nodes_());
 
-    forAll(m0, cellI)
+    forAll(m0, celli)
     {
-        univariateMomentSet momentsToInvert(nMoments_, 0.0, support_);
+        univariateMomentSet momentsToInvert
+        (
+            nMoments_,
+            0.0,
+            "Gauss",
+            support_
+        );
 
         // Copying moment set from a cell to univariateMomentSet
-        forAll(momentsToInvert, mI)
+        forAll(momentsToInvert, momenti)
         {
-            momentsToInvert[mI] = moments_[mI][cellI];
+            momentsToInvert[momenti] = moments_[momenti][celli];
         }
 
         // Inverting moments and updating secondary quadrature
@@ -417,13 +425,13 @@ void Foam::univariateQuadratureApproximation::updateQuadrature()
         );
 
         // Copying to fields
-        for (label pNodeI = 0; pNodeI < nPrimaryNodes_; pNodeI++)
+        for (label pNodei = 0; pNodei < nPrimaryNodes_; pNodei++)
         {
-            extendedVolScalarNode& node(nodes[pNodeI]);
+            extendedVolScalarNode& node(nodes[pNodei]);
 
             // Copy primary node
-            node.primaryWeight()[cellI] = pWeights[pNodeI];
-            node.primaryAbscissa()[cellI] = pAbscissae[pNodeI];
+            node.primaryWeight()[celli] = pWeights[pNodei];
+            node.primaryAbscissa()[celli] = pAbscissae[pNodei];
 
             // Copy secondary nodes
             PtrList<volScalarField>& sWeightFields(node.secondaryWeights());
@@ -439,30 +447,30 @@ void Foam::univariateQuadratureApproximation::updateQuadrature()
                 momentInverter_->secondaryAbscissae()
             );
 
-            for (label sNodeI = 0; sNodeI < nSecondaryNodes_; sNodeI++)
+            for (label sNodei = 0; sNodei < nSecondaryNodes_; sNodei++)
             {
-                sWeightFields[sNodeI][cellI] = sWeights[pNodeI][sNodeI];
-                sAbscissaFields[sNodeI][cellI] = sAbscissae[pNodeI][sNodeI];
+                sWeightFields[sNodei][celli] = sWeights[pNodei][sNodei];
+                sAbscissaFields[sNodei][celli] = sAbscissae[pNodei][sNodei];
             }
 
             // Copy sigma
-            node.sigma()[cellI] = momentInverter_->sigma();
+            node.sigma()[celli] = momentInverter_->sigma();
         }
     }
 
     // Updating boundary conditions
-    forAll(nodes, pNodeI)
+    forAll(nodes, pNodei)
     {
-        extendedVolScalarNode& pNode(nodes[pNodeI]);
+        extendedVolScalarNode& pNode(nodes[pNodei]);
 
         pNode.primaryWeight().correctBoundaryConditions();
         pNode.primaryAbscissa().correctBoundaryConditions();
         pNode.sigma().correctBoundaryConditions();
 
-        for (label sNodeI = 0; sNodeI < nSecondaryNodes_; sNodeI++)
+        for (label sNodei = 0; sNodei < nSecondaryNodes_; sNodei++)
         {
-            pNode.secondaryWeights()[sNodeI].correctBoundaryConditions();
-            pNode.secondaryAbscissae()[sNodeI].correctBoundaryConditions();
+            pNode.secondaryWeights()[sNodei].correctBoundaryConditions();
+            pNode.secondaryAbscissae()[sNodei].correctBoundaryConditions();
         }
     }
 

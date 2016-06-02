@@ -75,6 +75,9 @@ class univariatePopulationBalance
 
         //- Switch indicating the status of the convection model
         Switch convection_;
+        
+        //- Switch indicating the status of the nucleation model
+        Switch nucleation_;
 
         //- Aggregation kernel model
         autoPtr
@@ -131,17 +134,16 @@ class univariatePopulationBalance
         //- Convect moments in phase space
         virtual void phaseSpaceConvection();
 
-        //- Calculate source terms
-        virtual tmp<fvScalarMatrix> momentSource
+        //- Calculate source terms not used in ODE
+        virtual tmp<volScalarField> momentSource
         (
             const volUnivariateMoment& moment
         );
-
-
+        
 public:
 
     //- Runtime type information
-    TypeName("univariatePopulationBalance");
+    TypeName("univariate");
 
 
     // Constructors

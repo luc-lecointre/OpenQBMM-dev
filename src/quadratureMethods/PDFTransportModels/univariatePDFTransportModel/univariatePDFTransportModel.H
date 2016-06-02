@@ -39,6 +39,9 @@ SourceFiles
 #include "PDFTransportModel.H"
 #include "univariateQuadratureApproximation.H"
 
+#include "turbulentFluidThermoModel.H"
+#include "turbulentTransportModel.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -58,6 +61,30 @@ class univariatePDFTransportModel
 
         //- Name of the univariatePDFTransportModel
         const word name_;
+        
+        //- Support
+        const word support_;
+        
+        //- Switch for interface model
+        Switch interfaceModel_;
+        
+    // Variables for ODE solver
+        Switch ode_;
+        
+        //- Moment inversion method
+        autoPtr<extendedMomentInversion> momentInverter_;
+        
+        //- ODE constants
+        scalar ATol_;
+        scalar RTol_;
+        scalar fac_;
+        scalar facMin_;
+        scalar facMax_;
+        
+        //- Stored local time step
+        dimensionedScalar h_;
+        
+        bool maxDeltaT_;
 
 protected:
 
@@ -68,6 +95,15 @@ protected:
 
         //- Velocity field
         const volVectorField& U_;
+        
+        //- Face velocity field
+        const surfaceScalarField& phi_;
+        
+        //- Local nodes
+        autoPtr<PtrList<extendedVolScalarNode> > nodes_;
+        
+        //- Local moment set
+        volUnivariateMomentFieldSet moments_;
 
     // Protected member functions
 
@@ -78,28 +114,34 @@ protected:
         ) = 0;
 
         //- Update fields required to compute kinetic fluxes
-        void updatePhysicalSpaceConvection
-        (
-            surfaceScalarField& phiOwn,
-            surfaceScalarField& phiNei
-        );
+        void updatePhysicalSpaceConvection();
 
         //- Calculate explicit convection term in physical space
         tmp<volScalarField> physicalSpaceConvection
         (
-            const volUnivariateMoment& moment,
-            const surfaceScalarField& phiOwn,
-            const surfaceScalarField& phiNei
+            const volUnivariateMoment& moment
         );
 
+        
         //- Convect moments in phase space
         virtual void phaseSpaceConvection() = 0;
 
-        //- Calculate source terms
-        virtual tmp<fvScalarMatrix> momentSource
+        //- Calculate source terms (not uded in ODE)
+        virtual tmp<volScalarField> momentSource
         (
-            const volUnivariateMoment& moment
+            const volUnivariateMoment& m 
         ) = 0;
+        
+        tmp<volScalarField> interfaceSource
+        (
+            const volUnivariateMoment& m
+        );
+        
+        //- Update local quadrature
+        void updateQuadrature();
+        
+        //- ODE solver for moment source
+        void solveMomentSource();
 
 
 public:
@@ -113,7 +155,8 @@ public:
             const dictionary& dict,
             const fvMesh& mesh,
             const volVectorField& U,
-            const word support
+            const surfaceScalarField& phi,
+            const word& support
         );
 
 
@@ -124,6 +167,9 @@ public:
     // Member Functions
 
         //- Access
+    
+            //- Returns whether or not the ode solver is turned on.
+            inline bool ode() const;
 
             //- Returns a const reference to the quadrature approximation
             inline const univariateQuadratureApproximation& quadrature() const;

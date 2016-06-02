@@ -25,6 +25,11 @@ License
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
+bool Foam::PDFTransportModels::univariatePDFTransportModel::ode() const
+{
+    return ode_;
+}
+
 const Foam::univariateQuadratureApproximation&
 Foam::PDFTransportModels::univariatePDFTransportModel::quadrature() const
 {

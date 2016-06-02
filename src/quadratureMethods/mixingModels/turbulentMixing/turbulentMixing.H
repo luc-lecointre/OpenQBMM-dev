@@ -60,6 +60,7 @@ class turbulentMixing
     // Private data
 
         const word name_;
+        
 
         //- Aggregation kernel model
         autoPtr
@@ -80,26 +81,17 @@ class turbulentMixing
         (
             const volUnivariateMoment& moment
         );
-
-        //- Convect moments in phase space
-        virtual tmp<volScalarField> growthConvection
-        (
-            const volUnivariateMoment& moment
-        );
         
         //- Convect moments in phase space
         virtual void phaseSpaceConvection();
 
-        //- Calculate source terms
-        virtual tmp<fvScalarMatrix> momentSource
+
+        //- Calculate source terms not used in ODE
+        virtual tmp<volScalarField> momentSource
         (
             const volUnivariateMoment& moment
         );
         
-        virtual tmp<volScalarField> oxidationSpaceConvection
-        (
-            const volUnivariateMoment& moment
-        );
 
 
 public:

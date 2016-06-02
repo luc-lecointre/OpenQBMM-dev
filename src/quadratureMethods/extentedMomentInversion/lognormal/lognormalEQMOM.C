@@ -83,9 +83,9 @@ void Foam::lognormalEQMOM::momentsStarToMoments
 {
     scalar z = exp(sqr(sigma)/2.0);
 
-    forAll(moments, momentI)
+    forAll(moments, momenti)
     {
-        moments[momentI] = momentsStar[momentI]*pow(z, momentI*momentI);
+        moments[momenti] = momentsStar[momenti]*pow(z, momenti*momenti);
     }
 }
 
@@ -98,9 +98,9 @@ void Foam::lognormalEQMOM::momentsToMomentsStar
 {
     scalar z = exp(-sqr(sigma)/2.0);
 
-    forAll(moments, momentI)
+    forAll(moments, momenti)
     {
-        momentsStar[momentI] = moments[momentI]*pow(z, momentI*momentI);
+        momentsStar[momenti] = moments[momenti]*pow(z, momenti*momenti);
     }
 }
 
@@ -134,17 +134,17 @@ void Foam::lognormalEQMOM::recurrenceRelation
 
     a[0] = eta;
 
-    for (label aI = 1; aI < a.size(); aI++)
+    for (label ai = 1; ai < a.size(); ai++)
     {
-        a[aI] = ((sqEta + 1)*pow(sqEta, scalar(aI)) - 1.0)
-                *pow(eta, 2.0*scalar(aI) - 1.0);
+        a[ai] = ((sqEta + 1)*pow(sqEta, scalar(ai)) - 1.0)
+                *pow(eta, 2.0*scalar(ai) - 1.0);
     }
 
     b[0] = 0.0;
 
-    for (label bI = 1; bI < b.size(); bI++)
+    for (label bi = 1; bi < b.size(); bi++)
     {
-        b[bI] = pow(eta, 6.0*scalar(bI) - 4.0)*(pow(sqEta, scalar(bI)) - 1.0);
+        b[bi] = pow(eta, 6.0*scalar(bi) - 4.0)*(pow(sqEta, scalar(bi)) - 1.0);
     }
 }
 
@@ -158,7 +158,7 @@ Foam::scalar Foam::lognormalEQMOM::sigmaMax(univariateMomentSet& moments)
     if (nRealizableMoments > 3)
     {
         scalar sigmaZeta2 =
-            sqrt(max(SMALL, 2.0*log(sqrt(moments[1]*moments[3]/(sqr(moments[2]))))));
+            sqrt(2.0*log(sqrt(moments[1]*moments[3]/(sqr(moments[2])))));
 
         return min(sigmaZeta1, sigmaZeta2);
     }

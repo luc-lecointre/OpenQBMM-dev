@@ -55,7 +55,7 @@ Foam::PDFTransportModels::mixingModels::turbulentMixing::turbulentMixing
     const surfaceScalarField& phi
 )
 :
-    univariatePDFTransportModel(name, dict, U.mesh(), U, "01"),
+    univariatePDFTransportModel(name, dict, U.mesh(), U, phi, "01"),
     mixingModel(name, dict, U, phi),
     name_(name),
     mixingKernel_
@@ -92,79 +92,29 @@ Foam::tmp<fvScalarMatrix> Foam::PDFTransportModels::mixingModels
     return diffusionModel_->momentDiff(moment);
 }
 
-Foam::tmp<Foam::volScalarField>
-Foam::PDFTransportModels::mixingModels::turbulentMixing
-::growthConvection
-(
-    const volUnivariateMoment& moment
-)
-{
-    tmp<volScalarField> gSource
-    (
-        new volScalarField
-        (
-            IOobject
-            (
-                "gSource",
-                U_.mesh().time().timeName(),
-                U_.mesh(),
-                IOobject::NO_READ,
-                IOobject::NO_WRITE,
-                false
-            ),
-            U_.mesh(),
-            dimensionedScalar("zero", moment.dimensions()/dimTime, 0.0)
-        )
-    );
-
-    return gSource;
-}
 
 void
 Foam::PDFTransportModels::mixingModels::turbulentMixing
 ::phaseSpaceConvection
 ()
-{}
-
-Foam::tmp<Foam::volScalarField>
-Foam::PDFTransportModels::mixingModels::turbulentMixing
-::oxidationSpaceConvection
-(
-    const volUnivariateMoment& moment
-)
 {
-    tmp<volScalarField> oxidationMoment
-    (
-        new volScalarField
-        (
-            IOobject
-            (
-                "oxidationMoment",
-                U_.mesh().time().timeName(),
-                U_.mesh(),
-                IOobject::NO_READ,
-                IOobject::NO_WRITE,
-                false
-            ),
-            U_.mesh(),
-            dimensionedScalar("zero", moment.dimensions()/dimTime, 0.0)
-        )
-    );
-
-    return oxidationMoment;
+    return;
 }
 
-Foam::tmp<Foam::fvScalarMatrix>
+
+Foam::tmp<Foam::volScalarField>
 Foam::PDFTransportModels::mixingModels::turbulentMixing
 ::momentSource
 (
     const volUnivariateMoment& moment
 )
 {
-    const volUnivariateMomentFieldSet& moments = (*this).quadrature().moments();
+    //const volUnivariateMomentFieldSet& moments = (*this).quadrature().moments();
 
-    return mixingKernel_->K(moment, moments);
+    return mixingKernel_->K(moment, moments_);
 }
+
+
 
 void Foam::PDFTransportModels::mixingModels::turbulentMixing::solve
 ()

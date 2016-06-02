@@ -14,7 +14,7 @@ License
     (at your option) any later version.
 
     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    ANY WARRANTY; without even the implied warranty of MERCHANTAbiLITY or
     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
     for more details.
 
@@ -52,13 +52,15 @@ Foam::extendedMomentInversion::extendedMomentInversion
     sigma_(0.0),
     secondaryWeights_(nPrimaryNodes_, nSecondaryNodes_),
     secondaryAbscissae_(nPrimaryNodes_, nSecondaryNodes_),
+    minMean_(dict.lookupOrDefault("minMean", 1.0e-8)),
+    minVariance_(dict.lookupOrDefault("minVariance", 1.0e-8)),
     maxSigmaIter_(dict.lookupOrDefault<label>("maxSigmaIter", 1000)),
     momentsTol_(dict.lookupOrDefault("momentsTol", 1.0e-12)),
+    sigmaMin_(dict.lookupOrDefault("sigmaMin", 1.0e-6)),
     sigmaTol_(dict.lookupOrDefault("sigmaTol", 1.0e-12)),
     targetFunctionTol_(dict.lookupOrDefault("targetFunctionTol", 1.0e-12)),
     foundUnrealizableSigma_(false),
-    nullSigma_(false),
-    sigmaBracketed_(true)
+    nullSigma_(false)
 {}
 
 
@@ -74,17 +76,13 @@ void Foam::extendedMomentInversion::invert(const univariateMomentSet& moments)
     univariateMomentSet m(moments);
 
     reset();
-
+    
     // Terminate execution if negative number density is encountered
     if (m[0] < 0.0)
     {
-        FatalErrorIn
-        (
-            "Foam::extendedMomentInversion::invert\n"
-            "(\n"
-            "   const univariateMomentSet& moments\n"
-            ")"
-        )   << "The zero-order moment is negative."
+        FatalErrorInFunction
+            << "The zero-order moment is negative." << nl
+            << "    Moment set: " << m
             << abort(FatalError);
     }
 
@@ -99,16 +97,25 @@ void Foam::extendedMomentInversion::invert(const univariateMomentSet& moments)
     }
 
     label nRealizableMoments = m.nRealizableMoments();
+    
+    // If the moment set is on the boundary of the moment space, the
+    // distribution will be reconstructed by a summation of Dirac delta,
+    // and no attempt to use the extended quadrature method of moments is made.
+    if (m.isOnMomentSpaceBoundary())
+    {
+        sigma_ = 0.0;
+        nullSigma_ = true;
+        m.invert();
+        secondaryQuadrature(m);
+
+        return;
+    }
 
     if (nRealizableMoments % 2 == 0)
     {
         // If the number of realizable moments is even, we apply the standard
         // QMOM directly to maximize the number of preserved moments.
 
-        // Info << "Even number of realizable moments: using QMOM" << endl;
-        // Info << "Moments: " << m << endl;
-        // Info << "Invertible: " << m.nInvertibleMoments() << endl;
-        // Info << "Realizable: " << m.nRealizableMoments() << endl;
         m.invert();
         sigma_ = 0.0;
         nullSigma_ = true;
@@ -116,11 +123,33 @@ void Foam::extendedMomentInversion::invert(const univariateMomentSet& moments)
     }
     else
     {
+        // Do not attempt the EQMOM reconstruction if mean or variance of the
+        //  moment set are small to avoid numerical problems. These problems are
+        // particularly acute in the calculation of the recurrence relationship
+        // of the Jacobi orthogonal polynomials used for the beta kernel density
+        // function.
+        if (m[1]/m[0] < minMean_ || (m[2]/m[0] - sqr(m[1]/m[0])) < minVariance_)
+        {
+            sigma_ = 0.0;
+            nullSigma_ = true;
+
+            m.invert();
+            secondaryQuadrature(m);
+
+            return;
+        }
+
         // Resizing the moment set to avoid copying again
         m.resize(nRealizableMoments);
 
         // Local set of starred moments
-        univariateMomentSet mStar(nRealizableMoments, 0, m.support());
+        univariateMomentSet mStar
+        (
+            nRealizableMoments,
+            0.0,
+            m.quadratureType(),
+            m.support()
+        );
 
         // Compute target function for sigma = 0
         scalar sigmaLow = 0.0;
@@ -143,13 +172,14 @@ void Foam::extendedMomentInversion::invert(const univariateMomentSet& moments)
         scalar sigmaHigh = sigMax;
         scalar fHigh = targetFunction(sigmaHigh, m, mStar);
 
+        // This should not happen with the new algorithm
         if (fLow*fHigh > 0)
         {
             // Root not found. Minimize target function in [0, sigma_]
             sigma_ = minimizeTargetFunction(0, sigmaHigh, m, mStar);
 
-            // Check if sigma is small and use QMOM
-            if (mag(sigma_) < sigmaTol_)
+            // If sigma_ is small, use QMOM
+            if (mag(sigma_) < sigmaMin_)
             {
                 m.invert();
                 sigma_ = 0.0;
@@ -177,19 +207,14 @@ void Foam::extendedMomentInversion::invert(const univariateMomentSet& moments)
 
             if (s == 0.0)
             {
-                FatalErrorIn
-                (
-                    "Foam::extendedMomentInversion::invert\n"
-                    "(\n"
-                    "   const univariateMomentSet& moments\n"
-                    ")"
-                )<< "Singular value encountered while attempting to find root."
-                 << "Moment set = " << m << endl
-                 << "sigma = " << sigma_ << endl
-                 << "fLow = " << fLow << endl
-                 << "fMid = " << fMid << endl
-                 << "fHigh = " << fHigh
-                 << abort(FatalError);
+                FatalErrorInFunction
+                    << "Singular value encountered searching for root." << nl
+                    << "    Moment set = " << m << nl
+                    << "    sigma = " << sigma_ << nl
+                    << "    fLow = " << fLow << nl
+                    << "    fMid = " << fMid << nl
+                    << "    fHigh = " << fHigh
+                    << abort(FatalError);
             }
 
             sigma_ = sigmaMid + (sigmaMid - sigmaLow)*sign(fLow - fHigh)*fMid/s;
@@ -202,7 +227,10 @@ void Foam::extendedMomentInversion::invert(const univariateMomentSet& moments)
             // Check for convergence
             if (mag(fNew) <= targetFunctionTol_ || mag(dSigma) <= sigmaTol_)
             {
-                if (mag(sigma_) < sigmaTol_)
+                // Root finding converged
+
+                // If sigma_ is small, use QMOM
+                if (mag(sigma_) < sigmaMin_)
                 {
                     m.invert();
                     sigma_ = 0.0;
@@ -229,7 +257,8 @@ void Foam::extendedMomentInversion::invert(const univariateMomentSet& moments)
                     // Root not found. Minimize target function in [0, sigma_]
                     sigma_ = minimizeTargetFunction(0, sigma_, m, mStar);
 
-                    if (mag(sigma_) < sigmaTol_)
+                    // If sigma_ is small, use QMOM
+                    if (mag(sigma_) < sigmaMin_)
                     {
                         m.invert();
                         sigma_ = 0.0;
@@ -247,6 +276,8 @@ void Foam::extendedMomentInversion::invert(const univariateMomentSet& moments)
             }
             else
             {
+                // Root finding did not converge. Refine search.
+
                 if (fNew*fMid < 0 && sigma_ < sigmaMid)
                 {
                     sigmaLow = sigma_;
@@ -274,13 +305,9 @@ void Foam::extendedMomentInversion::invert(const univariateMomentSet& moments)
             }
         }
 
-        FatalErrorIn
-        (
-            "Foam::extendedMomentInversion::invert\n"
-            "(\n"
-            "   const univariateMomentSet& moments\n"
-            ")"
-        )   << "Number of iterations exceeded."
+        FatalErrorInFunction
+            << "Number of iterations exceeded." << nl
+            << "    Max allowed iterations = " << maxSigmaIter_
             << abort(FatalError);
     }
 }
@@ -289,17 +316,16 @@ void Foam::extendedMomentInversion::reset()
 {
     foundUnrealizableSigma_ = false;
     nullSigma_ = false;
-    sigmaBracketed_ = true;
 
-    forAll(primaryWeights_, pNodeI)
+    forAll(primaryWeights_, pNodei)
     {
-        primaryWeights_[pNodeI] = 0.0;
-        primaryAbscissae_[pNodeI] = 0.0;
+        primaryWeights_[pNodei] = 0.0;
+        primaryAbscissae_[pNodei] = 0.0;
 
-        for (label sNodeI = 0; sNodeI < nSecondaryNodes_; sNodeI++)
+        for (label sNodei = 0; sNodei < nSecondaryNodes_; sNodei++)
         {
-            secondaryWeights_[pNodeI][sNodeI] = 0.0;
-            secondaryAbscissae_[pNodeI][sNodeI] = 0.0;
+            secondaryWeights_[pNodei][sNodei] = 0.0;
+            secondaryAbscissae_[pNodei][sNodei] = 0.0;
         }
     }
 }
@@ -346,15 +372,10 @@ Foam::scalar Foam::extendedMomentInversion::minimizeTargetFunction
 
     if (iter > maxSigmaIter_)
     {
-        FatalErrorIn
-        (
-            "Foam::extendedMomentInversion::findExtremumTargetFunction\n"
-            "(\n"
-            "       const scalar sigmaLow,\n"
-            "       const scalar sigmaHigh\n"
-            ")"
-        )   << "Number of iterations exceeded."
-        << abort(FatalError);
+        FatalErrorInFunction
+            << "Number of iterations exceeded." << nl
+            << "    Max allowed iterations = " << maxSigmaIter_
+            << abort(FatalError);
     }
 
     return (a + b)/2.0;
@@ -374,20 +395,16 @@ Foam::scalar Foam::extendedMomentInversion::normalizedMomentError
     univariateMomentSet approximatedMoments
     (
         moments.size(),
-        0,
+        0.0,
+        moments.quadratureType(),
         moments.support()
     );
 
     momentsStarToMoments(sigma, approximatedMoments, momentsStar);
 
-    //  Info << setprecision (17);
-    //  Info << "Approximated moments: " << endl << approximatedMoments;
-    //  Info << "Is realizable?" << approximatedMoments.isRealizable() << endl;
-    //  Info << "sigma = " << sigma;
-
-    for (label momentI = 0; momentI < moments.size(); momentI++)
+    for (label momenti = 0; momenti < moments.size(); momenti++)
     {
-        norm += mag(1.0 - approximatedMoments[momentI]/moments[momentI]);
+        norm += mag(1.0 - approximatedMoments[momenti]/moments[momenti]);
     }
 
     return sqrt(norm);
@@ -402,24 +419,11 @@ void Foam::extendedMomentInversion::secondaryQuadrature
     const scalarDiagonalMatrix& pAbscissae(moments.abscissae());
 
     // Copy primary weights and abscissae
-    forAll(pWeights, pNodeI)
+    forAll(pWeights, pNodei)
     {
-        primaryWeights_[pNodeI] = pWeights[pNodeI];
-        primaryAbscissae_[pNodeI] = pAbscissae[pNodeI];
+        primaryWeights_[pNodei] = pWeights[pNodei];
+        primaryAbscissae_[pNodei] = pAbscissae[pNodei];
     }
-
-    // Set weights and abscissae of unused primary nodes to zero
-//     for (label pNodeI = pWeights.size(); pNodeI < nPrimaryNodes_; pNodeI++)
-//     {
-//         primaryWeights_[pNodeI] = 0.0;
-//         primaryAbscissae_[pNodeI] = 0.0;
-//
-//         for (label sNodeI = 0; sNodeI < nSecondaryNodes_; sNodeI++)
-//         {
-//             secondaryWeights_[pNodeI][sNodeI] = 0.0;
-//             secondaryAbscissae_[pNodeI][sNodeI] = 0.0;
-//         }
-//     }
 
     if (!nullSigma_)
     {
@@ -427,25 +431,25 @@ void Foam::extendedMomentInversion::secondaryQuadrature
         scalarDiagonalMatrix a(nSecondaryNodes_, 0.0);
         scalarDiagonalMatrix b(nSecondaryNodes_, 0.0);
 
-        forAll(pWeights, pNodeI)
+        forAll(pWeights, pNodei)
         {
             // Compute coefficients of the recurrence relation
-            recurrenceRelation(a, b, primaryAbscissae_[pNodeI], sigma_);
+            recurrenceRelation(a, b, primaryAbscissae_[pNodei], sigma_);
 
             // Define the Jacobi matrix
             scalarSquareMatrix J(nSecondaryNodes_, 0.0);
 
             // Fill diagonal of Jacobi matrix
-            forAll(a, aI)
+            forAll(a, ai)
             {
-                J[aI][aI] = a[aI];
+                J[ai][ai] = a[ai];
             }
 
             // Fill off-diagonal terms of the Jacobi matrix
-            for (label bI = 0; bI < nSecondaryNodes_ - 1; bI++)
+            for (label bi = 0; bi < nSecondaryNodes_ - 1; bi++)
             {
-                J[bI][bI + 1] = Foam::sqrt(b[bI + 1]);
-                J[bI + 1][bI] = J[bI][bI + 1];
+                J[bi][bi + 1] = Foam::sqrt(b[bi + 1]);
+                J[bi + 1][bi] = J[bi][bi + 1];
             }
 
             // Compute Gaussian quadrature used to find secondary quadrature
@@ -454,39 +458,55 @@ void Foam::extendedMomentInversion::secondaryQuadrature
             const scalarDiagonalMatrix& JEigenvaluesRe(JEig.eigenvaluesRe());
 
             // Compute secondary weights before normalization and calculate sum
-            for (label sNodeI = 0; sNodeI < nSecondaryNodes_; sNodeI++)
+            for (label sNodei = 0; sNodei < nSecondaryNodes_; sNodei++)
             {
-                secondaryWeights_[pNodeI][sNodeI]
-                    = sqr(JEig.eigenvectors()[0][sNodeI]);
+                secondaryWeights_[pNodei][sNodei]
+                    = sqr(JEig.eigenvectors()[0][sNodei]);
 
-                secondaryAbscissae_[pNodeI][sNodeI] =
-                    secondaryAbscissa(primaryAbscissae_[pNodeI],
-                        JEigenvaluesRe[sNodeI], sigma_);
+                secondaryAbscissae_[pNodei][sNodei] =
+                    secondaryAbscissa(primaryAbscissae_[pNodei],
+                        JEigenvaluesRe[sNodei], sigma_);
             }
         }
 
-        // Set weights and abscissae of unused secondary nodes to zero
-        for (label pNodeI = pWeights.size(); pNodeI < nPrimaryNodes_; pNodeI++)
+        // Set weights and abscissae of unused nodes to zero
+        for (label pNodei = pWeights.size(); pNodei < nPrimaryNodes_; pNodei++)
         {
-            for (label sNodeI = 0; sNodeI < nSecondaryNodes_; sNodeI++)
+            primaryWeights_[pNodei] = 0.0;
+            primaryAbscissae_[pNodei] = 0.0;
+
+            for (label sNodei = 0; sNodei < nSecondaryNodes_; sNodei++)
             {
-                secondaryWeights_[pNodeI][sNodeI] = 0.0;
-                secondaryAbscissae_[pNodeI][sNodeI] = 0.0;
+                secondaryWeights_[pNodei][sNodei] = 0.0;
+                secondaryAbscissae_[pNodei][sNodei] = 0.0;
             }
         }
     }
     else
     {
         // Manage case with null sigma to avoid redefining source terms
-        forAll(pWeights, pNodeI)
+        forAll(pWeights, pNodei)
         {
-            secondaryWeights_[pNodeI][0] = 1.0;
-            secondaryAbscissae_[pNodeI][0] = primaryAbscissae_[pNodeI];
+            secondaryWeights_[pNodei][0] = 1.0;
+            secondaryAbscissae_[pNodei][0] = primaryAbscissae_[pNodei];
 
-            for (label sNodeI = 1; sNodeI < nSecondaryNodes_; sNodeI++)
+            for (label sNodei = 1; sNodei < nSecondaryNodes_; sNodei++)
             {
-                secondaryWeights_[pNodeI][sNodeI] = 0.0;
-                secondaryAbscissae_[pNodeI][sNodeI] = 0.0;
+                secondaryWeights_[pNodei][sNodei] = 0.0;
+                secondaryAbscissae_[pNodei][sNodei] = 0.0;
+            }
+        }
+
+        // Set weights and abscissae of unused nodes to zero
+        for (label pNodei = pWeights.size(); pNodei < nPrimaryNodes_; pNodei++)
+        {
+            primaryWeights_[pNodei] = 0.0;
+            primaryAbscissae_[pNodei] = 0.0;
+
+            for (label sNodei = 0; sNodei < nSecondaryNodes_; sNodei++)
+            {
+                secondaryWeights_[pNodei][sNodei] = 0.0;
+                secondaryAbscissae_[pNodei][sNodei] = 0.0;
             }
         }
     }

@@ -70,7 +70,8 @@ Foam::mixingSubModels::mixingKernels::IEM
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-Foam::tmp<Foam::fvScalarMatrix>
+
+Foam::tmp<Foam::volScalarField>
 Foam::mixingSubModels::mixingKernels::IEM::K
 (
     const volUnivariateMoment& moment,
@@ -87,13 +88,9 @@ Foam::mixingSubModels::mixingKernels::IEM::K
         )
     )
     {
-        FatalErrorIn
-        (
-            "Foam::mixingSubModels::mixingKernels::IEM::K\n"
-            "(\n"
-            "   const volUnivariateMoment& moment\n"
-            ")"
-        )   << "No valid compressible turbulence model found."
+
+        FatalErrorInFunction
+            << "No valid compressible turbulence model found."
             << abort(FatalError);
     }
 
@@ -105,12 +102,22 @@ Foam::mixingSubModels::mixingKernels::IEM::K
 
     label momentOrder = moment.order();
 
-    tmp<fvScalarMatrix> mixingK
+
+    tmp<volScalarField> mixingK
     (
-        new fvScalarMatrix
+        new volScalarField
         (
-            moment,
-            moment.dimensions()*dimVol/dimTime
+            IOobject
+            (
+                "mixingK",
+                moment.mesh().time().timeName(),
+                moment.mesh(),
+                IOobject::NO_READ,
+                IOobject::NO_WRITE,
+                false
+            ),
+            moment.mesh(),
+            dimensionedScalar("mikingK", moment.dimensions()/dimTime, 0.0)
         )
     );
 
@@ -120,9 +127,9 @@ Foam::mixingSubModels::mixingKernels::IEM::K
     }
     else
     {
-        mixingK.ref() += momentOrder*Cphi_*flTurb.epsilon()/flTurb.k()
-            *(moments[momentOrder - 1]*moments[1])
-            - fvm::Su(momentOrder*Cphi_*flTurb.epsilon()/flTurb.k(), moment);
+        mixingK.ref() = momentOrder*Cphi_*flTurb.epsilon()/flTurb.k()
+            *(moments[momentOrder - 1]*moments[1]);
+            //- fvm::Su(momentOrder*Cphi_*flTurb.epsilon()/flTurb.k(), moment);
     }
 
     return mixingK;

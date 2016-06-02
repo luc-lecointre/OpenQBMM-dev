@@ -75,10 +75,7 @@ public:
     // Constructors
 
         //- Construct from components
-        powerLawBreakup
-        (
-            const dictionary& dict
-        );
+        powerLawBreakup(const dictionary& dict);
 
 
     //- Destructor

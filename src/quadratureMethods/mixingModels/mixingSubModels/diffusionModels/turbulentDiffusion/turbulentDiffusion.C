@@ -85,7 +85,8 @@ Foam::mixingSubModels::diffusionModels::turbulentDiffusion
     return fvm::laplacian(gamma, moment);
 }
 
-Foam::tmp<Foam::volScalarField> Foam::mixingSubModels::diffusionModels::turbulentDiffusion::
+Foam::tmp<Foam::volScalarField>
+Foam::mixingSubModels::diffusionModels::turbulentDiffusion::
 turbViscosity(const volScalarField& moment) const
 {
     typedef compressible::turbulenceModel cmpTurbModel;
@@ -116,10 +117,7 @@ turbViscosity(const volScalarField& moment) const
     }
     else
     {
-        FatalErrorIn
-        (
-            "turbulentDiffusion::turbViscosity()"
-        )
+        FatalErrorInFunction
             << "No valid turbulence model for turbulent diffusion calculation."
             << exit(FatalError);
 

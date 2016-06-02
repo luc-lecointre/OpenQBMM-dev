@@ -70,7 +70,8 @@ Foam::mixingSubModels::mixingKernels::FokkerPlanck
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-Foam::tmp<Foam::fvScalarMatrix>
+
+Foam::tmp<Foam::volScalarField>
 Foam::mixingSubModels::mixingKernels::FokkerPlanck::K
 (
     const volUnivariateMoment& moment,
@@ -87,13 +88,8 @@ Foam::mixingSubModels::mixingKernels::FokkerPlanck::K
         )
     )
     {
-        FatalErrorIn
-        (
-            "Foam::mixingSubModels::mixingKernels::FokkerPlanck::K\n"
-            "(\n"
-            "   const volUnivariateMoment& moment\n"
-            ")"
-        )   << "No valid compressible turbulence model found."
+        FatalErrorInFunction
+            << "No valid compressible turbulence model found."
             << abort(FatalError);
     }
 
@@ -105,16 +101,30 @@ Foam::mixingSubModels::mixingKernels::FokkerPlanck::K
 
     label momentOrder = moment.order();
 
-    tmp<fvScalarMatrix> mixingK
+    tmp<volScalarField> mixingK
     (
-        new fvScalarMatrix
+        new volScalarField
         (
-            moment,
-            moment.dimensions()*dimVol/dimTime
+            IOobject
+            (
+                "mixingK",
+                moment.mesh().time().timeName(),
+                moment.mesh(),
+                IOobject::NO_READ,
+                IOobject::NO_WRITE,
+                false
+            ),
+            moment.mesh(),
+            dimensionedScalar
+            (
+                "mixingK",
+                moment.dimensions()*dimVol/dimTime,
+                0.0
+            )
         )
     );
 
-    dimensionedScalar oneMoment("oneMoment", moments[1].dimensions(),1.0);
+    dimensionedScalar oneMoment("oneMoment", moments[1].dimensions(), 1.0);
 
     if (momentOrder == 0)
     {
@@ -122,14 +132,16 @@ Foam::mixingSubModels::mixingKernels::FokkerPlanck::K
     }
     else
     {
-        mixingK.ref() += momentOrder*Cphi_*flTurb.epsilon()/flTurb.k()
+        mixingK.ref() == momentOrder*Cphi_*flTurb.epsilon()/flTurb.k()
             *moments[momentOrder - 1]
             *((Cmixing_ + 1.0)*moments[1] + Cmixing_*(momentOrder - 1)*oneMoment
             *((moments[2] - sqr(moments[1]))/(moments[1]*oneMoment
-            - moments[2]))) - fvm::Su(momentOrder*Cphi_*flTurb.epsilon()
+            - moments[2])));
+            
+          /*- fvm::SuSp(momentOrder*Cphi_*flTurb.epsilon()
             /flTurb.k()*((Cmixing_ + 1.0) + Cmixing_*(momentOrder - 1)
             *((moments[2] - sqr(moments[1]))/(moments[1]*oneMoment
-            - moments[2]))), moment);
+            - moments[2]))), moment);*/
     }
 
     return mixingK;

@@ -140,7 +140,6 @@ public:
         const scalar& primaryAbscissa,
         const scalar& sigma
     ) const;
-
 };
 
 

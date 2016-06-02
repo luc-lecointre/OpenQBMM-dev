@@ -88,11 +88,8 @@ public:
     // Constructors
 
         //- Construct from components
-        AyaziShamlou
-        (
-            const dictionary& dict
-        );
-
+        AyaziShamlou(const dictionary& dict);
+        
 
     //- Destructor
     virtual ~AyaziShamlou();

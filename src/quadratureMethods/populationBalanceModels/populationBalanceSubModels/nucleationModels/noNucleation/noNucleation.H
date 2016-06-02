@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2015 Alberto Passalacqua
+    \\  /    A nd           | Copyright (C) 2016 Alberto Passalacqua
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -25,8 +25,7 @@ Class
     Foam::populationBalanceSubModels::nucleationModels::noNucleation
 
 Description
-    Standard turbulent nucleation model. This model should be default for
-    problems without size-dependent nucleation.
+    No nucleation model.
 
 SourceFiles
     noNucleation.C
@@ -48,24 +47,27 @@ namespace nucleationModels
 {
 
 /*---------------------------------------------------------------------------*\
-                    Class noNucleation Declaration
+                        Class noNucleation Declaration
 \*---------------------------------------------------------------------------*/
 
 class noNucleation
 :
     public nucleationModel
-{      
+{
 public:
 
         //- Runtime type information
-        TypeName("noNucleation");
+        TypeName("none");
 
 
     // Constructors
 
         //- Construct from components
-        noNucleation(const dictionary& dict, const fvMesh& mesh);
-
+        noNucleation
+        (
+            const dictionary& dict,
+            const fvMesh& mesh
+        );
 
     //- Destructor
     virtual ~noNucleation();
@@ -73,12 +75,11 @@ public:
 
     // Member Functions
 
-        //- Moments of the daughter distribution
+        //- Growth model
         virtual tmp<volScalarField> nucleationSource
-    (
-        const volUnivariateMoment& moment
-    );
-
+        (
+            const volUnivariateMoment& moment
+        );
 };
 
 
