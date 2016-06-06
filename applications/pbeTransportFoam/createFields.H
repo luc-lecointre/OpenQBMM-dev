@@ -95,11 +95,12 @@
             IOobject::NO_WRITE
         )
     );
-
+    surfaceScalarField phiByRho(phi/fvc::interpolate(rho));
+    
     autoPtr<populationBalanceModel> populationBalance
     (
         populationBalanceModel::New
         (
-            "populationBalance", populationBalanceProperties, U, phi
+            "populationBalance", populationBalanceProperties, U, phiByRho
         )
     );

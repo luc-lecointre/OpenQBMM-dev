@@ -218,7 +218,7 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
         }
     }
     
-    Info << "aggregationSource : "<< aggregationSource << endl;
+    //Info << "aggregationSource : "<< aggregationSource << endl;
     
     return aSource;
 }
@@ -333,11 +333,121 @@ void Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBala
                         
                         //Formule de quadrature de Gauss_3_points
                         
-                        moment[cellI] += node.primaryWeight()[cellI]*(xmax -characteristic)/2.0*
+                        /*moment[cellI] += node.primaryWeight()[cellI]*(xmax -characteristic)/2.0*
                         (8.0/9.0*pow(convectionModel_->characteristic((xmax+characteristic)/2.0,cellI),mI)
                         *quadrature_.momentInverter()->distribution((xmax+characteristic)/2.0,primaryAbscissa[cellI],sigma[cellI])
                         + 5.0/9.0*(pow(convectionModel_->characteristic((xmax-characteristic)/2.0*sqrt(3.0/5.0)+(xmax+characteristic)/2.0,cellI),mI)*quadrature_.momentInverter()->distribution((xmax-characteristic)/2.0*sqrt(3.0/5.0)+(xmax+characteristic)/2.0,primaryAbscissa[cellI],sigma[cellI])
-                        +pow(convectionModel_->characteristic((xmax-characteristic)/2.0*(-sqrt(3.0/5.0))+(xmax+characteristic)/2.0,cellI),mI)*quadrature_.momentInverter()->distribution((xmax-characteristic)/2.0*(-sqrt(3.0/5.0))+(xmax+characteristic)/2.0,primaryAbscissa[cellI],sigma[cellI])));
+                        +pow(convectionModel_->characteristic((xmax-characteristic)/2.0*(-sqrt(3.0/5.0))+(xmax+characteristic)/2.0,cellI),mI)*quadrature_.momentInverter()->distribution((xmax-characteristic)/2.0*(-sqrt(3.0/5.0))+(xmax+characteristic)/2.0,primaryAbscissa[cellI],sigma[cellI])));*/
+                        
+                        
+                        //trapeze
+                        int n = 0;
+                        scalar s = 0.0;
+                        scalar olds=-1.0e30;
+                        
+                        do 
+                        {
+                            olds = s;
+                            n+=1;
+                            
+                            if (n==21)
+                            {
+                                Info << "Too many steps" << endl;
+                            }
+                            int it=pow(2,(n-2));
+                            scalar del = (xmax-characteristic)/it;
+                            scalar x=characteristic+0.5*del;
+                            scalar sum=0.0;
+                            for (int j=1 ; j<=it; j++)
+                            {
+                                sum += pow(convectionModel_->characteristic(x,cellI),mI)*quadrature_.momentInverter()->distribution(x,primaryAbscissa[cellI],sigma[cellI]);
+                                x += del;
+                            }
+                            s = 0.5*(s+(xmax-characteristic)*sum/it);
+                    
+                        }while(fabs(s-olds)>1.e-6*fabs(olds) && (s!=0.0 && olds!=0.0));
+                            
+                        moment[cellI] += node.primaryWeight()[cellI]*s;
+                        
+                        //Romberg
+                        
+                        /*scalar s[21]; //array of lenght 21
+                        scalar h[21]; 
+                        scalar ss = 0.0;
+                        scalar dss = 0.0;
+                        int n = 0;
+                        
+                        s[1]=0.0;
+
+                        do 
+                        {
+                            n+=1;
+                            
+                            if (n==21)
+                            {
+                                Info << "Too many steps in Romberg" << endl;
+                            }
+                            for (int i=1 ; i<=n ; i++)
+                            {
+                                int it=pow(2,(i-2));
+                                scalar del = (xmax-characteristic)/it;
+                                scalar x=characteristic+0.5*del;
+                                scalar sum=0.0;
+                                for (int j=1 ; j<=it; j++)
+                                {
+                                    sum += pow(convectionModel_->characteristic(x,cellI),mI)*quadrature_.momentInverter()->distribution(x,primaryAbscissa[cellI],sigma[cellI]);
+                                    x += del;
+                                }
+                                s[n] = 0.5*(s[n]+(xmax-characteristic)*sum/it);
+                            }
+                            if (n>=5)
+                            {
+                                scalar c[10];
+                                scalar d[10];
+                                int ns = 1;
+                                scalar dif=h[n-4];
+                                
+                                for (int i=1; i<=5; i++)
+                                {
+                                    scalar dift = h[n-4];
+                                    if (dift < dif)
+                                    {
+                                        ns=i;
+                                        dif=dift;
+                                    }
+                                    c[i]=s[n-3];
+                                    d[i]=s[n-3];
+                                }
+                                ss = s[n-4+ns];
+                                ns -= 1;
+                                for (int m=1; m<5 ; m++)
+                                {
+                                    for (int i=1; i<=5-m ; i++)
+                                    {
+                                        scalar ho=h[n-4+i];
+                                        scalar hp=h[n-4+i+m];
+                                        scalar w = c[i+1]-d[i];
+                                        scalar den = w/(ho - hp);
+                                        d[i]=hp*den;
+                                        c[i]=ho*den;
+                                    }
+                                    if (2*ns<(5-m))
+                                    {
+                                        dss=c[ns+1];
+                                    }
+                                    else
+                                    {
+                                        dss=d[ns];
+                                        ns=ns-1;
+                                    }
+                                    ss += dss;
+                                }
+                            }
+                            s[n+1]=s[n];
+                            h[n+1] = 0.25*h[n];
+                        }while(dss<=1.e-6*ss);
+                            
+                        moment[cellI] += node.primaryWeight()[cellI]*ss;*/
                         
                     }
                     else if (primaryAbscissaFinal>0.0)
