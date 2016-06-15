@@ -594,6 +594,8 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solve()
         momentEqns[mEqni].relax();
         momentEqns[mEqni].solve();
     }
+    
+    //Info << quadrature_.moments() << endl;
         
     quadrature_.updateQuadrature();
     
