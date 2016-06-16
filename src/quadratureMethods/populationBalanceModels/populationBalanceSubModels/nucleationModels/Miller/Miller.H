@@ -72,7 +72,6 @@ private:
         
         dimensionedScalar volume(const scalar& nC);
         volScalarField Kfm(const scalar& nC);
-        tmp<volScalarField> dimerConcentration(const scalar& nC);
 
 public:
 
@@ -96,11 +95,17 @@ public:
 
     // Member Functions
 
-        //- Nucleation model
-        virtual tmp<volScalarField> nucleationSource
+        //collision models
+        virtual tmp<volScalarField> beta
         (
-            const volUnivariateMoment& moment
+            const volScalarField& abscissa
         );
+        
+        virtual tmp<volScalarField> betaN();
+        
+        virtual tmp<volScalarField> betaPAH();
+        
+        virtual dimensionedScalar xiNuc(); 
 };
 
 

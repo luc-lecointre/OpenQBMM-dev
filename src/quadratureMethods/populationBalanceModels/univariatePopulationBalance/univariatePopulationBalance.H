@@ -116,6 +116,12 @@ class univariatePopulationBalance
 
     // Private member functions
 
+        //-calculate nucleation/condensation term
+        tmp<volScalarField> nucleationSource
+        (
+            const volUnivariateMoment& moment
+        );
+        
         //- Calculate aggregation source terms
         tmp<volScalarField> aggregationSource
         (
@@ -123,7 +129,10 @@ class univariatePopulationBalance
         );
 
         //- Calculate Breakup source term
-        tmp<volScalarField> breakupSource(const volUnivariateMoment& moment);
+        tmp<volScalarField> breakupSource
+        (
+            const volUnivariateMoment& moment
+        );
 
         //- Diffusion term
         virtual tmp<fvScalarMatrix> momentDiffusion

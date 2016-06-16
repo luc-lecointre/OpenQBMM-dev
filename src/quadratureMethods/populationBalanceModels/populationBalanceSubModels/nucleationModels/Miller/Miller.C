@@ -102,69 +102,78 @@ Foam::populationBalanceSubModels::nucleationModels::Miller
 
 Foam::tmp<Foam::volScalarField>
 Foam::populationBalanceSubModels::nucleationModels::Miller
-::dimerConcentration(const scalar& nC)
+::beta
+(
+    const volScalarField& abscissa
+)
 {
-    const fluidThermo& flThermo = mesh_.lookupObject<fluidThermo>(basicThermo::dictName);
-    
-    const volScalarField& pahConcentration(mesh_.lookupObject<volScalarField>(PAH_));
-    
-    volScalarField dimerSource = 0.5*Kfm(nC)*Foam::constant::physicoChemical::NA
-    *sqr(pahConcentration*flThermo.rho()/0.202); //[mol/(m^3*s)]
-    
-    volScalarField betaN = Kfm(2*nC)*Foam::constant::physicoChemical::NA; //[m^3/(s*mol)]
-    
-    dimensionedScalar MDimer (
-        "dimerMolarMass",
-        Foam::dimensionSet(1,0,0,0,-1,0,0),
-        0.404
-    ); //or use A4 Molar Mass 
-    
-    return sqrt(dimerSource/betaN)*MDimer/flThermo.rho(); 
-}
-    
-Foam::tmp<Foam::volScalarField>
-Foam::populationBalanceSubModels::nucleationModels::Miller
-::nucleationSource(const volUnivariateMoment& moment) 
-{
-    const fluidThermo& flThermo = mesh_.lookupObject<fluidThermo>(basicThermo::dictName);
-    
-    volScalarField V
+    tmp<volScalarField> beta
     (
-        IOobject
+        new volScalarField
         (
-            "volume",
-            mesh_.time().timeName(),
+            IOobject
+            (
+                "beta",
+                mesh_.time().timeName(),
+                mesh_,
+                IOobject::NO_READ,
+                IOobject::NO_WRITE,
+                false
+            ),
             mesh_,
-            IOobject::NO_READ,
-            IOobject::NO_WRITE,
-            false
-        ),
-        mesh_,
-        dimensionedScalar("zero", dimless, 0.0)
+            dimensionedScalar("beta", dimensionSet(0,3,-1,0,0,0,0), 0.0)
+        )
     );
     
-    forAll(V, cellI){
-        V[cellI]=mesh_.V()[cellI];
+    dimensionedScalar dDimer = pow(6.0/Foam::constant::mathematical::pi*volume(2*nCarbonPAH_),1.0/3.0);
+    
+    const volScalarField& T = mesh_.lookupObject<volScalarField>("T");
+    
+    forAll(abscissa, cellI)
+    {
+        if (abscissa[cellI]!=0)
+        {
+            scalar dSoot = pow(6.0/Foam::constant::mathematical::pi*abscissa[cellI],1.0/3.0);
+    
+            scalar mu = rhoSoot_.value()*(volume(2*nCarbonPAH_).value()*abscissa[cellI])/(volume(2*nCarbonPAH_).value()+abscissa[cellI]);
+    
+            beta.ref()[cellI] = sqrt((Foam::constant::mathematical::pi*Foam::constant::physicoChemical::k.value()*T[cellI])/(2.0*mu))*sqr(dDimer.value()+dSoot);
+        }
     }
     
-    dimensionedScalar abscissaNucleation = volume(4*nCarbonPAH_)*1.0e27; //[nm^3]
-        
-    //Info << "abscissaNucleation" << tokens[specie] << " : " << abscissaNucleation.value() << endl;
-        
+    return beta; //(m^3/s)
+}
+
+Foam::tmp<Foam::volScalarField>
+Foam::populationBalanceSubModels::nucleationModels::Miller
+::betaN()
+{
+    return Kfm(2*nCarbonPAH_)*Foam::constant::physicoChemical::NA;
+}
+
+Foam::tmp<Foam::volScalarField>
+Foam::populationBalanceSubModels::nucleationModels::Miller
+::betaPAH()
+{
+    const volScalarField& pahConcentration(mesh_.lookupObject<volScalarField>(PAH_));
+    
+    const fluidThermo& flThermo = mesh_.lookupObject<fluidThermo>(basicThermo::dictName);
+    
     dimensionedScalar MPAH (
         "PAHMolarMass",
         Foam::dimensionSet(1,0,0,0,-1,0,0),
         0.202
     );
     
-    const volScalarField& pahConcentration(mesh_.lookupObject<volScalarField>(PAH_));
-    
-    tmp<volScalarField> jT = 0.5*Kfm(2.0*nCarbonPAH_)*sqr(Foam::constant::physicoChemical::NA*pahConcentration*flThermo.rho()/MPAH)*V*pow(abscissaNucleation,moment.order());
-        
-    //Info << V << endl;
-    //Miller.ref().dimensions().reset(inv(dimTime*pow3(dimLength)));
-    
-    return jT;
+    return 1.0/2.0*Kfm(nCarbonPAH_)*Foam::constant::physicoChemical::NA*sqr(pahConcentration*flThermo.rho()/MPAH);
 }
+
+Foam::dimensionedScalar
+Foam::populationBalanceSubModels::nucleationModels::Miller
+::xiNuc()
+{
+    return volume(4*nCarbonPAH_)*1.0e27;
+}
+
 
 // ************************************************************************* //

@@ -73,6 +73,8 @@ private:
             const scalar& E,
             const scalar& T
         );
+        
+        scalar r(const label& cellI);
             
         //-constant growthReduction
         scalar cRed(const label& cellI);

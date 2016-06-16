@@ -117,11 +117,17 @@ public:
 
     // Member Functions
 
-        //- Nucleation rate
-        virtual tmp<volScalarField> nucleationSource
+        //collision models
+        virtual tmp<volScalarField> beta
         (
-            const volUnivariateMoment& moment
-        )= 0 ;
+            const volScalarField& abscissa
+        ) =0;
+        
+        virtual tmp<volScalarField> betaN() =0;
+        
+        virtual tmp<volScalarField> betaPAH() =0;
+        
+        virtual dimensionedScalar xiNuc()=0;
 };
 
 

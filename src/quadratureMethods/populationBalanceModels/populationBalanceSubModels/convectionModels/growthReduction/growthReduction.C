@@ -83,31 +83,7 @@ Foam::scalar Foam::populationBalanceSubModels::convectionModels::growthReduction
     return A*pow(T,n)*exp(-E*1000.0/(8.314*T)); 
 }
 
-Foam::scalar Foam::populationBalanceSubModels::convectionModels::growthReduction
-::cRed(const label& cellI)
-{
-    
-    const volScalarField& T = mesh_.lookupObject<volScalarField>("T");
-    
-    scalar kReaction = Arrhenius(2.20e6,0.0,31.38,T[cellI]); //reaction : Soot* + O2 -> Soot-H + 2CO + arrhenius law
-    
-    scalar kOH = Arrhenius(1.0e10,0.0,8.4,T[cellI]); //reaction Soot-H + OH -> Soot-H + C0 + reaction probability 0.13 ???
-    
-    const volScalarField& concentration_O2(mesh_.lookupObject<volScalarField>("O2"));
-    
-    const volScalarField& concentration_OH(mesh_.lookupObject<volScalarField>("OH"));
-    
-    const volScalarField& rho = mesh_.lookupObject<volScalarField>("rho");
-    
-    scalar cRed = (2.0*kReaction*concentration_O2[cellI]/0.032+kOH*concentration_OH[cellI]/0.017)*rho[cellI]*Xi_*VCarbon_*pow(36.0*Foam::constant::mathematical::pi,1.0/3.0);
-
-    //Info << "cRed : " << cRed.ref() << endl;
-    //Info << "kReaction : " << kReaction << endl;
-    return cRed;
-}
-
-Foam::scalar Foam::populationBalanceSubModels::convectionModels::growthReduction
-::cGro(const label& cellI)
+Foam::scalar Foam::populationBalanceSubModels::convectionModels::growthReduction::r (const label& cellI)
 {
     const volScalarField& T = mesh_.lookupObject<volScalarField>("T");
     
@@ -129,8 +105,43 @@ Foam::scalar Foam::populationBalanceSubModels::convectionModels::growthReduction
     {
         r = Arrhenius(1e2,1.80,68.42,T[cellI])*concentration_H[cellI]*rho[cellI]/0.001+Arrhenius(8.68e-5,2.36,25.46,T[cellI])*concentration_OH[cellI]*rho[cellI]/0.005+Arrhenius(1.13e16,-0.06,476.05,T[cellI])/(Arrhenius(8.68e-2,2.36,25.46,T[cellI])*concentration_H2[cellI]*rho[cellI]/0.002+Arrhenius(6.44e-7,3.79,27.96,T[cellI])*concentration_H2O[cellI]*rho[cellI]/0.018+Arrhenius(4.17e6,0.15,0.00,T[cellI])*concentration_H[cellI]*rho[cellI]/0.001+Arrhenius(2.52e3,1.10,17.13,T[cellI])*concentration_C2H2[cellI]*rho[cellI]/0.026);
     }
-        
-    scalar cGro = 2.0*VCarbon_*r/(r+1.0)*concentration_C2H2[cellI]*Xi_*Arrhenius(2.52e3,1.10,17.13,T[cellI])*rho[cellI]/0.026*pow(36.0*Foam::constant::mathematical::pi,1.0/3.0);
+    
+    return r;
+}
+
+Foam::scalar Foam::populationBalanceSubModels::convectionModels::growthReduction
+::cRed(const label& cellI)
+{
+    
+    const volScalarField& T = mesh_.lookupObject<volScalarField>("T");
+    
+    scalar kReaction = Arrhenius(2.20e6,0.0,31.38,T[cellI]); //reaction : Soot* + O2 -> Soot-H + 2CO + arrhenius law
+    
+    scalar kOH = Arrhenius(1.0e10,0.0,8.4,T[cellI]); //reaction Soot-H + OH -> Soot-H + C0 + reaction probability 0.13 ???
+    
+    const volScalarField& concentration_O2(mesh_.lookupObject<volScalarField>("O2"));
+    
+    const volScalarField& concentration_OH(mesh_.lookupObject<volScalarField>("OH"));
+    
+    const volScalarField& rho = mesh_.lookupObject<volScalarField>("rho");
+    
+    scalar cRed = (2.0*r(cellI)/(r(cellI)+1.0)*kReaction*concentration_O2[cellI]/0.032+kOH*concentration_OH[cellI]/0.017)*rho[cellI]*Xi_*VCarbon_*pow(36.0*Foam::constant::mathematical::pi,1.0/3.0);
+
+    //Info << "cRed : " << cRed.ref() << endl;
+    //Info << "kReaction : " << kReaction << endl;
+    return cRed;
+}
+
+Foam::scalar Foam::populationBalanceSubModels::convectionModels::growthReduction
+::cGro(const label& cellI)
+{
+    const volScalarField& T = mesh_.lookupObject<volScalarField>("T");
+    
+    const volScalarField& rho = mesh_.lookupObject<volScalarField>("rho");
+    
+    const volScalarField& concentration_C2H2(mesh_.lookupObject<volScalarField>("C2H2"));
+    
+    scalar cGro = 2.0*VCarbon_*r(cellI)/(r(cellI)+1.0)*concentration_C2H2[cellI]*Xi_*Arrhenius(2.52e3,1.10,17.13,T[cellI])*rho[cellI]/0.026*pow(36.0*Foam::constant::mathematical::pi,1.0/3.0);
     
     //Info << "cGro : " << cGro.ref() << endl;
     

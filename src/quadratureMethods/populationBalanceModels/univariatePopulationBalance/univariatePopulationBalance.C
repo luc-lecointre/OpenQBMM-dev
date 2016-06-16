@@ -121,6 +121,100 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
 
 Foam::tmp<Foam::volScalarField>
 Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
+::nucleationSource
+(
+    const volUnivariateMoment& moment
+)
+{
+    tmp<volScalarField> nSource
+    (
+        new volScalarField
+        (
+            IOobject
+            (
+                "nSource",
+                U_.mesh().time().timeName(),
+                U_.mesh(),
+                IOobject::NO_READ,
+                IOobject::NO_WRITE,
+                false
+            ),
+            U_.mesh(),
+            dimensionedScalar("zero", dimless, 0.0)
+        )
+    );
+    
+    if (!nucleation_)
+    {
+        nSource.ref().dimensions().reset(moment.dimensions()/dimTime);
+
+        return nSource;
+    }
+    
+    volScalarField V = nSource.ref();
+    
+    forAll(V, cellI){
+        V[cellI]= U_.mesh().V()[cellI];
+    }
+    
+    volScalarField dConcentration = nSource.ref();
+    
+    forAll(nodes_(), pNodeI)
+    {
+        const extendedVolScalarNode& node = nodes_()[pNodeI];
+
+        forAll(node.secondaryWeights(), sNodei)
+        {
+            tmp<volScalarField> dSrc = node.primaryWeight()
+                *node.secondaryWeights()[sNodei]
+                *nucleationModel_->beta(node.secondaryAbscissae()[sNodei]);
+                
+            dConcentration.dimensions().reset(dSrc().dimensions());
+            dConcentration == dConcentration + dSrc;
+        }
+    }
+    
+    volScalarField delta = sqr(dConcentration)+4.0*nucleationModel_->betaN()*nucleationModel_->betaPAH();
+    
+    
+    volScalarField dimerConcentration = -(dConcentration-sqrt(delta))/(2*nucleationModel_->betaN());
+    
+    //Info << dimerConcentration.dimensions() << endl;
+    
+    label order = moment.order();
+
+    volScalarField& nucleationSource = nSource.ref();
+    
+    tmp<volScalarField> nSrc = nucleationModel_->betaN()*sqr(dimerConcentration)*pow(nucleationModel_->xiNuc(),order)*Foam::constant::physicoChemical::NA*V;
+    
+    nucleationSource.dimensions().reset(nSrc().dimensions());
+    nucleationSource == nSrc;
+    
+    forAll(nodes_(), pNodeI)
+    {
+        const extendedVolScalarNode& node = nodes_()[pNodeI];
+
+        forAll(node.secondaryWeights(), sNodei)
+        {
+            tmp<volScalarField> cSrc = node.primaryWeight()
+                *node.secondaryWeights()[sNodei]
+                *pow(node.secondaryAbscissae()[sNodei], order)
+                *Foam::constant::physicoChemical::NA*V
+                *dimerConcentration
+                *nucleationModel_->beta(node.secondaryAbscissae()[sNodei]);
+
+            nucleationSource.dimensions().reset(cSrc().dimensions());
+            nucleationSource == nucleationSource + cSrc;
+        }
+    }
+    
+    //Info << nucleationSource.dimensions() << endl;
+    
+    return nSource;
+}
+
+Foam::tmp<Foam::volScalarField>
+Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
 ::aggregationSource
 (
     const volUnivariateMoment& moment
@@ -498,7 +592,7 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
     mSource.ref() ==
         aggregationSource(moment)
       + breakupSource(moment)
-      + nucleationModel_->nucleationSource(moment);
+      + nucleationSource(moment);
 
     return mSource;
 }
