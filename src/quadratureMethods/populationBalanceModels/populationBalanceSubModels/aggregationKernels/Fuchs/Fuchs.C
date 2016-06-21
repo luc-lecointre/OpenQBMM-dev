@@ -88,7 +88,7 @@ Foam::volScalarField Foam::populationBalanceSubModels::aggregationKernels::Fuchs
 {
     const fluidThermo& flThermo = abscissa.mesh().lookupObject<fluidThermo>(basicThermo::dictName);
     
-    volScalarField lambdaf = flThermo.mu()/flThermo.p()*sqrt(Foam::constant::mathematical::pi*Foam::constant::physicoChemical::k*flThermo.T()/(2.0*rhoSoot_*abscissa)); 
+    volScalarField lambdaf = Foam::constant::physicoChemical::k*flThermo.T()/(sqrt(2.0)*Foam::constant::mathematical::pi*flThermo.p()*sqr(pow(6.0/Foam::constant::mathematical::pi*abscissa,1.0/3.0))); 
     
     return 2.0*lambdaf/dc(abscissa);
 }

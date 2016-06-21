@@ -11,20 +11,21 @@ cp -f system/controlDict.flow system/controlDict
 cp -f constant/thermophysicalProperties.flow constant/thermophysicalProperties
 cp -f system/fvSchemes.flow system/fvSchemes
 runApplication blockMesh
+runApplication setFields
 decomposePar
 mpirun -np 4 reactingFoam -parallel
 runApplication reconstructPar -latestTime
 
 mv processor* combustion/
-mv 0.2 0.2.flow
-cp -f 0.2.flow/* 0/ 2>&1
+mv 0.1 0.1.flow
+cp -f 0.1.flow/* 0/ 2>&1
 cp -f system/controlDict.pbe system/controlDict
 cp -f constant/thermophysicalProperties.pbe constant/thermophysicalProperties
 cp -f system/fvSchemes.pbe system/fvSchemes
 
 decomposePar 
-mpirun -np 4 pbeTransportFoam -parallel
+mpirun -np 4 pbeTransportFoam -parallel 
 
 runApplication reconstructPar -latestTime
-mv 0.1 0.1.pbe
+mv 0.2 0.2.pbe
 # ----------------------------------------------------------------- end-of-file

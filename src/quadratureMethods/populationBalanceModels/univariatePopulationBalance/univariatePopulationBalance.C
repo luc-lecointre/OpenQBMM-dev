@@ -218,7 +218,7 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
         }
     }
     
-    //Info << "aggregationSource : "<< aggregationSource << endl;
+    //Info << "aggregationSource : "<< max(aggregationSource)*U_.mesh().time().deltaT().value() << endl;
     
     return aSource;
 }
@@ -326,7 +326,7 @@ void Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBala
             
                     if (sigma[cellI]!=0 && characteristic!=0.0)
                     { 
-                        while (quadrature_.momentInverter()->distribution(xmax,primaryAbscissa[cellI],sigma[cellI])>1.0e-12)
+                        while (quadrature_.momentInverter()->distribution(xmax,primaryAbscissa[cellI],sigma[cellI])>1.0e-8)
                         {
                             xmax+=10.0;
                         }
@@ -495,10 +495,15 @@ Foam::PDFTransportModels::populationBalanceModels::univariatePopulationBalance
             )
         )
     );
+    
     mSource.ref() ==
         aggregationSource(moment)
       + breakupSource(moment)
       + nucleationModel_->nucleationSource(moment);
+      
+    //Info << "aggregation : " << aggregationSource(moment) << endl;
+    //Info << "breakup : " << max(breakupSource(moment))*U_.mesh().time().deltaT().value() << endl;
+    //Info << "nucleation : " << nucleationModel_->nucleationSource(moment) << endl;
 
     return mSource;
 }

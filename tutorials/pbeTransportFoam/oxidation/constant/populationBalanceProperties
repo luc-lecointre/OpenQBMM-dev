@@ -15,9 +15,9 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-populationBalanceModel univariatePopulationBalance;
+populationBalanceModel univariate;
 
-univariatePopulationBalanceCoeffs
+univariateCoeffs
 {
     aggregation off;
     
@@ -27,7 +27,6 @@ univariatePopulationBalanceCoeffs
         
         Ca        Ca        [ 0 0 -1 0 0 0 0 ] 1.0;
         
-        
         df                  1.8;
         nCarbonSoot         64;
     }
@@ -36,12 +35,9 @@ univariatePopulationBalanceCoeffs
     
     breakupKernel
     {
-        breakupKernel LuoSvendsen;
+        breakupKernel constant;
         
-        Cb        Cb        [ 0 0 0 0 0 0 0 ] 1.0e-3;
-        epsilonExp          0.75;
-        nuExp              -1.25;
-        sizeExp             1.0;
+        Cb        Cb        [ 0 0 -1 0 0 0 0 ] 5.0e-2;
     }
     
     daughterDistribution
@@ -56,27 +52,33 @@ univariatePopulationBalanceCoeffs
         Sc              0.7;
     }
     
-    growth off;
-    
-    growthModel
-    {
-        growthModel constant;
-        
-        Cg        Cg        [0 3 -1 0 0 0 0 ] 1.0;
-    }
-    
     convection on;
     
     convectionModel
     {
         convectionModel growthReduction;
+        Xi              1.7e19;
     }
     
     nucleation off;
     
     nucleationModel
     {
-        nucleationModel noNucleation;
+        nucleationModel none;
+        
+        PAH             "A4";
+        nCarbonPAH      16;
+        rhoSoot rhoSoot     [ 1 -3 0 0 0 0 0 ] 1800.0;
+    }
+    interfaceModel off;
+    ode on;    
+    odeCoeffs
+    {
+        ATol    1.0e-8;
+        RTol    1.0e-6;
+        fac     0.8;
+        facMin  1e-3;
+        facMax  2.0;
     }
 }
 
