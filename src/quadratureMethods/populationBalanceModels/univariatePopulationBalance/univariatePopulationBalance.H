@@ -115,6 +115,13 @@ class univariatePopulationBalance
         > nucleationModel_;
 
     // Private member functions
+        
+        
+        //-calculate nucleation/condensation term
+        tmp<volScalarField> nucleationSource
+        (
+            const volUnivariateMoment& moment
+        );
 
         //- Calculate aggregation source terms
         tmp<volScalarField> aggregationSource

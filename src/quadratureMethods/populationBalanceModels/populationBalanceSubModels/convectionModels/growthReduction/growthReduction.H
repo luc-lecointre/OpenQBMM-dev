@@ -58,14 +58,22 @@ private:
     // Constants
     
         //- Carbon atom Volume
-        scalar VCarbon_;
+        dimensionedScalar VCarbon_;
         
         //- concentration of active sites per units of surface
-        scalar Xi_;
+        dimensionedScalar Xi_;
         
     // Functions
         
         //- Arrhenius law
+        volScalarField Arrhenius
+        (
+            const scalar& A,
+            const scalar& n,
+            const scalar& E,
+            const label& nReactifs
+        );
+        
         scalar Arrhenius
         (
             const scalar& A,
@@ -73,10 +81,8 @@ private:
             const scalar& E,
             const scalar& T
         );
-            
-        //-constant growthReduction
-        scalar cRed(const label& cellI);
-        scalar cGro(const label& cellI);
+        
+        volScalarField r();
         
 
 public:
@@ -100,18 +106,24 @@ public:
 
 
     // Member Functions
+    
+        //-constant growthReduction
+        virtual volScalarField cRed();
+        virtual volScalarField cGro();
 
         //- Caracteristic convection equation
         virtual scalar characteristic
         (
             const scalar& abscissa,
-            const label& cellI
+            const scalar& cRed,
+            const scalar& cGro
         );
         
         //- Caracteristic convection equation
         virtual scalar characteristic
         (
-            const label& cellI
+            const scalar& cRed,
+            const scalar& cGro
         );
 };
 

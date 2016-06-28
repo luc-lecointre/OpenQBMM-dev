@@ -58,8 +58,8 @@ Foam::populationBalanceSubModels::convectionModels::growthReduction::growthReduc
 )
 :
     convectionModel(dict, mesh),
-    VCarbon_(1.1e-2),
-    Xi_(17.0)
+    VCarbon_("CarbonVolume", pow3(dimLength), 1.1e-2),
+    Xi_("concentration hydrogen sites", inv(sqr(dimLength)), 17)
 {
 }
 
@@ -72,6 +72,45 @@ Foam::populationBalanceSubModels::convectionModels::growthReduction::~growthRedu
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
+Foam::volScalarField Foam::populationBalanceSubModels::convectionModels::growthReduction::Arrhenius
+(
+    const scalar& A,
+    const scalar& n,
+    const scalar& E,
+    const label& nReactifs //reactif number
+)
+{
+    const volScalarField& T = mesh_.lookupObject<volScalarField>("T");
+    
+    volScalarField Ea
+    (
+        IOobject
+        (
+            "Ea",
+            mesh_.time().timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE,
+            false
+        ),
+        mesh_,
+        dimensionedScalar("activation energy", T.dimensions(), E*1000)
+    );
+    
+    volScalarField Arrhenius = A*pow(T,n)*exp(-Ea/(8.314*T)); //careful, the dimensions of E in kJ and A divided by 1e6 to have the result by m^3 instead of cm^3
+    
+    if (nReactifs==2)
+    {
+        Arrhenius.dimensions().reset(Foam::dimensionSet(0,3,-1,0,-1,0,0));//dimensions 
+    }
+    else 
+    {
+        Arrhenius.dimensions().reset(Foam::dimensionSet(0,0,-1,0,0,0,0));
+    }
+    
+    return Arrhenius;
+}
+
 Foam::scalar Foam::populationBalanceSubModels::convectionModels::growthReduction::Arrhenius
 (
     const scalar& A,
@@ -80,37 +119,11 @@ Foam::scalar Foam::populationBalanceSubModels::convectionModels::growthReduction
     const scalar& T
 )
 {
-    return A*pow(T,n)*exp(-E*1000.0/(8.314*T)); 
+    return A*pow(T,n)*exp(-E*1000/(8.314*T)); 
 }
 
-Foam::scalar Foam::populationBalanceSubModels::convectionModels::growthReduction
-::cRed(const label& cellI)
+Foam::volScalarField Foam::populationBalanceSubModels::convectionModels::growthReduction::r()
 {
-    
-    const volScalarField& T = mesh_.lookupObject<volScalarField>("T");
-    
-    scalar kReaction = Arrhenius(2.20e6,0.0,31.38,T[cellI]); //reaction : Soot* + O2 -> Soot-H + 2CO + arrhenius law
-    
-    scalar kOH = Arrhenius(1.0e10,0.0,8.4,T[cellI]); //reaction Soot-H + OH -> Soot-H + C0 + reaction probability 0.13 ???
-    
-    const volScalarField& concentration_O2(mesh_.lookupObject<volScalarField>("O2"));
-    
-    const volScalarField& concentration_OH(mesh_.lookupObject<volScalarField>("OH"));
-    
-    const volScalarField& rho = mesh_.lookupObject<volScalarField>("rho");
-    
-    scalar cRed = (2.0*kReaction*concentration_O2[cellI]/0.032+kOH*concentration_OH[cellI]/0.017)*rho[cellI]*Xi_*VCarbon_*pow(36.0*Foam::constant::mathematical::pi,1.0/3.0);
-
-    //Info << "cRed : " << cRed.ref() << endl;
-    //Info << "kReaction : " << kReaction << endl;
-    return cRed;
-}
-
-Foam::scalar Foam::populationBalanceSubModels::convectionModels::growthReduction
-::cGro(const label& cellI)
-{
-    const volScalarField& T = mesh_.lookupObject<volScalarField>("T");
-    
     const volScalarField& rho = mesh_.lookupObject<volScalarField>("rho");
     
     const volScalarField& concentration_H(mesh_.lookupObject<volScalarField>("H"));
@@ -123,41 +136,93 @@ Foam::scalar Foam::populationBalanceSubModels::convectionModels::growthReduction
     
     const volScalarField& concentration_C2H2(mesh_.lookupObject<volScalarField>("C2H2"));
     
-    scalar r = 0.0;
+    /*volScalarField r = Arrhenius(1.00e2,1.80,68.42,2)*concentration_H*rho/0.001+Arrhenius(6.72e-5,3.33,6.09,2)*concentration_OH*rho/0.005+Arrhenius(1.13e16,-0.06,476.05,1)/(Arrhenius(8.68e-2,2.36,25.46,2)*concentration_H2*rho/0.002+Arrhenius(6.44e-7,3.79,27.96,2)*concentration_H2O*rho/0.018+Arrhenius(4.17e6,0.15,0.00,2)*concentration_H*rho/0.001+Arrhenius(2.52e3,1.10,17.13,2)*concentration_C2H2*rho/0.026);*/
     
-    if (concentration_H[cellI]!=0) 
+    const volScalarField& T = mesh_.lookupObject<volScalarField>("T");
+    
+    volScalarField r
+    (
+        IOobject
+        (
+            "r",
+            mesh_.time().timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE,
+            false
+        ),
+        mesh_,
+        dimensionedScalar("zero", dimless, 0.0)
+    );
+    
+    forAll(concentration_H, cellI)
     {
-        r = Arrhenius(1e2,1.80,68.42,T[cellI])*concentration_H[cellI]*rho[cellI]/0.001+Arrhenius(8.68e-5,2.36,25.46,T[cellI])*concentration_OH[cellI]*rho[cellI]/0.005+Arrhenius(1.13e16,-0.06,476.05,T[cellI])/(Arrhenius(8.68e-2,2.36,25.46,T[cellI])*concentration_H2[cellI]*rho[cellI]/0.002+Arrhenius(6.44e-7,3.79,27.96,T[cellI])*concentration_H2O[cellI]*rho[cellI]/0.018+Arrhenius(4.17e6,0.15,0.00,T[cellI])*concentration_H[cellI]*rho[cellI]/0.001+Arrhenius(2.52e3,1.10,17.13,T[cellI])*concentration_C2H2[cellI]*rho[cellI]/0.026);
+        if (concentration_H[cellI]!=0) 
+        {
+            r[cellI] = Arrhenius(1e2,1.80,68.42,T[cellI])*concentration_H[cellI]*rho[cellI]/0.001+Arrhenius(8.68e-5,2.36,25.46,T[cellI])*concentration_OH[cellI]*rho[cellI]/0.005+Arrhenius(1.13e16,-0.06,476.05,T[cellI])/(Arrhenius(8.68e-2,2.36,25.46,T[cellI])*concentration_H2[cellI]*rho[cellI]/0.002+Arrhenius(6.44e-7,3.79,27.96,T[cellI])*concentration_H2O[cellI]*rho[cellI]/0.018+Arrhenius(4.17e6,0.15,0.00,T[cellI])*concentration_H[cellI]*rho[cellI]/0.001+Arrhenius(2.52e3,1.10,17.13,T[cellI])*concentration_C2H2[cellI]*rho[cellI]/0.026);
+        }
     }
-        
-    scalar cGro = 2.0*VCarbon_*r/(r+1.0)*concentration_C2H2[cellI]*Xi_*Arrhenius(2.52e3,1.10,17.13,T[cellI])*rho[cellI]/0.026*pow(36.0*Foam::constant::mathematical::pi,1.0/3.0);
     
-    //Info << "cGro : " << cGro.ref() << endl;
+    //Info << r << endl;
+    
+    return r;
+}
+
+Foam::volScalarField Foam::populationBalanceSubModels::convectionModels::growthReduction
+::cRed()
+{
+    volScalarField kReaction = Arrhenius(2.20e6,0.0,31.38,2); //reaction : Soot* + O2 -> Soot-H + 2CO + arrhenius law
+    
+    volScalarField kOH = Arrhenius(1.0e10,0.0,8.4,2); //reaction Soot-H + OH -> Soot-H + C0 + reaction probability 0.13 ???
+    
+    volScalarField concentration_O2(mesh_.lookupObject<volScalarField>("O2"));
+    
+    volScalarField concentration_OH(mesh_.lookupObject<volScalarField>("OH"));
+    
+    const volScalarField& rho = mesh_.lookupObject<volScalarField>("rho");
+    
+    volScalarField cRed = (2.0*r()/(r()+1.0)*kReaction*concentration_O2/0.032+kOH*concentration_OH/0.017)*rho*Xi_*VCarbon_*pow(36.0*Foam::constant::mathematical::pi,1.0/3.0);
+
+    /*concentration_OH -= r()/(r()+1.0)*concentration_OH*Xi_*kOH*pow(36.0*Foam::constant::mathematical::pi,1.0/3.0)*pow(abscissa,2.0/3.0)*moment/Foam::constant::physicoChemical::Na*mesh_.time().deltaT();
+    
+    concentration_O2 -= r()/(r()+1.0)*concentration_O2*Xi_*kReaction*pow(36.0*Foam::constant::mathematical::pi,1.0/3.0)*pow(abscissa,2.0/3.0)*moment/Foam::constant::physicoChemical::Na*mesh_.time().deltaT();*/
+    
+    return cRed;
+}
+
+Foam::volScalarField Foam::populationBalanceSubModels::convectionModels::growthReduction
+::cGro()
+{
+    const volScalarField& rho = mesh_.lookupObject<volScalarField>("rho");
+    
+    volScalarField concentration_C2H2(mesh_.lookupObject<volScalarField>("C2H2"));
+    
+    volScalarField cGro = 2.0*VCarbon_*r()/(r()+1.0)*concentration_C2H2*Xi_*Arrhenius(2.52e3,1.10,17.13,2)*rho/0.026*pow(36.0*Foam::constant::mathematical::pi,1.0/3.0);
+    
+    /*concentration_C2H2 -= r()/(r()+1.0)*concentration_C2H2*Xi_*Arrhenius(2.52e3,1.10,17.13,2)*pow(36.0*Foam::constant::mathematical::pi,1.0/3.0)*pow(abscissa,2.0/3.0)*moment/Foam::constant::physicoChemical::Na*mesh_.time().deltaT();*/
     
     return cGro;
 }
 
 Foam::scalar
 Foam::populationBalanceSubModels::convectionModels::growthReduction
-::characteristic(const label& cellI) 
+::characteristic
+(
+    const scalar& cRed,
+    const scalar& cGro    
+) 
 {
-    
-    //Info << "characteristic in 0" << max(pow3((cRed()-cGro())/3.0*mesh_.time().deltaT()),null) << endl;
-    //Info << "difference " << cRed() - cGro() << endl;
-    
-    return max(pow3((cRed(cellI)-cGro(cellI))/6.0*mesh_.time().deltaT().value()),0.0);
+    return max(pow3((cRed-cGro)/6.0*mesh_.time().deltaT().value()),0.0);
 }
 
 Foam::scalar
 Foam::populationBalanceSubModels::convectionModels::growthReduction
-::characteristic(const scalar& abscissa, const label& cellI) 
+::characteristic
+(
+    const scalar& abscissa, 
+    const scalar& cRed,
+    const scalar& cGro
+) 
 {
-    //return pow3(pow(abscissa,1.0/3.0) + cGro(cellI)/3.0*mesh_.time().deltaT().value());
-    //Info << "abscissa" << abscissa.dimensions() << endl;
-    
-    return pow3(pow(abscissa,1.0/3.0) + (cGro(cellI)-cRed(cellI))/6.0*mesh_.time().deltaT().value());
-    
-    //if (characteristic<1.0
+    return pow3(pow(abscissa,1.0/3.0) + (cGro-cRed)/6.0*mesh_.time().deltaT().value());
 }
-
-// ************************************************************************* //

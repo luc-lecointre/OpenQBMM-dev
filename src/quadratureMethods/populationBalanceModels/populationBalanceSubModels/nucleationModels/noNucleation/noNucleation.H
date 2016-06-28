@@ -75,7 +75,25 @@ public:
 
     // Member Functions
 
-        //- Growth model
+        //collision models
+        virtual tmp<volScalarField> beta
+        (
+            const volScalarField& abscissa
+        );
+        
+        virtual tmp<volScalarField> betaN();
+        
+        virtual tmp<volScalarField> betaPAH();
+        
+        virtual tmp<volScalarField> xiNuc() ;
+        
+        virtual tmp<volScalarField> xiCond
+        (
+            const volScalarField& abscissa,
+            const label& order
+        ) ;
+        
+        //- Nucleation rate
         virtual tmp<volScalarField> nucleationSource
         (
             const volUnivariateMoment& moment

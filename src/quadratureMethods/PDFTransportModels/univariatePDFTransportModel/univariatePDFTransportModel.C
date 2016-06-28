@@ -43,7 +43,6 @@ Foam::PDFTransportModels::univariatePDFTransportModel
     support_(support),
     interfaceModel_(dict.lookup("interfaceModel")),
     ode_(dict.lookup("ode")),
-    momentInverter_(),
     ATol_(readScalar(dict.subDict("odeCoeffs").lookup("ATol"))),
     RTol_(readScalar(dict.subDict("odeCoeffs").lookup("RTol"))),
     fac_(readScalar(dict.subDict("odeCoeffs").lookup("fac"))),
@@ -51,6 +50,7 @@ Foam::PDFTransportModels::univariatePDFTransportModel
     facMax_(readScalar(dict.subDict("odeCoeffs").lookup("facMax"))),
     h_(facMin_*U.mesh().time().deltaT()),
     maxDeltaT_(false),
+    momentInverter_(),
     quadrature_(name, mesh, support),
     U_(U),
     phi_(phi),
@@ -560,28 +560,35 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solveMomentSource()
 
 void Foam::PDFTransportModels::univariatePDFTransportModel::solve()
 {
+    //Info << quadrature_.moments() << endl;
     phaseSpaceConvection();
     
+    //updateQuadrature();
+
     updatePhysicalSpaceConvection();
 
     // List of moment transport equations
     PtrList<fvScalarMatrix> momentEqns(quadrature_.nMoments());
-
+    
     solveMomentSource();
+    
+    //Info << moments_ << endl;
     
     // Solve moment transport equations
     forAll(quadrature_.moments(), momenti)
     {
         volUnivariateMoment& m = quadrature_.moments()[momenti];
-
+        
+        //Info << m << endl;
+        
         momentEqns.set
         (
             momenti,
             new fvScalarMatrix
             (
                 fvm::ddt(m)
-              + fvm::div(phi_, m, "div(phi,moment)")
-              //+ physicalSpaceConvection(m)
+              //+ fvm::div(phi_, m, "div(phi,moment)")
+              + physicalSpaceConvection(m)
               - momentDiffusion(m)
               ==
                 (moments_[momenti] - m)/m.mesh().time().deltaT()
@@ -595,11 +602,10 @@ void Foam::PDFTransportModels::univariatePDFTransportModel::solve()
         momentEqns[mEqni].solve();
     }
     
+    phaseSpaceConvection();
     //Info << quadrature_.moments() << endl;
         
     quadrature_.updateQuadrature();
-    
-    phaseSpaceConvection();
 }
 
 

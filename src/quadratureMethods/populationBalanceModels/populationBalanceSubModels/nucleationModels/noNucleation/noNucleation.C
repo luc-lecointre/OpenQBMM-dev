@@ -68,29 +68,58 @@ Foam::populationBalanceSubModels::nucleationModels::noNucleation::~noNucleation(
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
+
+
 Foam::tmp<Foam::volScalarField>
 Foam::populationBalanceSubModels::nucleationModels::noNucleation
 ::nucleationSource(const volUnivariateMoment& moment)
 {
-    tmp<volScalarField> noNucl
-    (
-        new volScalarField
-        (
-            IOobject
-            (
-                "noNucl",
-                moment.mesh().time().timeName(),
-                moment.mesh(),
-                IOobject::NO_READ,
-                IOobject::NO_WRITE,
-                false
-            ),
-            moment.mesh(),
-            dimensionedScalar("zero", moment.dimensions()/dimTime, 0.0)
-        )
-    );
 
-    return noNucl;
+    return nullptr;
+}
+
+
+Foam::tmp<Foam::volScalarField>
+Foam::populationBalanceSubModels::nucleationModels::noNucleation
+::beta(const volScalarField& abscissa)
+{
+
+    return nullptr;
+}
+
+Foam::tmp<Foam::volScalarField>
+Foam::populationBalanceSubModels::nucleationModels::noNucleation
+::betaN()
+{
+    return nullptr;
+}
+
+Foam::tmp<Foam::volScalarField>
+Foam::populationBalanceSubModels::nucleationModels::noNucleation
+::betaPAH()
+{
+    return nullptr;
+}
+
+Foam::tmp<Foam::volScalarField>
+Foam::populationBalanceSubModels::nucleationModels::noNucleation
+::xiNuc()
+{
+    return nullptr;
+}
+
+Foam::tmp<Foam::volScalarField>
+Foam::populationBalanceSubModels::nucleationModels::noNucleation
+::xiNuc()
+{
+    return nullptr;
+}
+
+Foam::tmp<Foam::volScalarField>
+Foam::populationBalanceSubModels::nucleationModels::noNucleation
+::xiCond(const volScalarField& abscissa, const label& order)
+{
+    return nullptr;
 }
 
 // ************************************************************************* //

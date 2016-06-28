@@ -36,6 +36,7 @@ SourceFiles
 #define Miller_H
 
 #include "nucleationModel.H"
+#include "specie.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -65,14 +66,27 @@ private:
         string PAH_;
 
         //- Number of carbon atoms in PAH species
-        label nCarbonPAH_;
+        string nCarbonPAH_;
+        
+        //sticking coefficient
+        string gamma_;
 
         //- Soot density
         dimensionedScalar rhoSoot_;
         
+        //-volume of the mesh
+        volScalarField V_;
+        
+        List<word> tokens;
+        List<label> nCarbon;
+        List<scalar> gamma;
+        
         dimensionedScalar volume(const scalar& nC);
+        volScalarField volume(const volScalarField& nC);
         volScalarField Kfm(const scalar& nC);
+        volScalarField Kfm(const volScalarField& nC);
         tmp<volScalarField> dimerConcentration(const scalar& nC);
+        volScalarField nCmoy();
 
 public:
 
@@ -96,11 +110,29 @@ public:
 
     // Member Functions
 
-        //- Nucleation model
+        //collision models
+        virtual tmp<volScalarField> beta
+        (
+            const volScalarField& abscissa
+        );
+        
+        virtual tmp<volScalarField> betaN();
+        
+        virtual tmp<volScalarField> betaPAH();
+        
+        virtual tmp<volScalarField> xiNuc();
+        
+        virtual tmp<volScalarField> xiCond
+        (
+            const volScalarField& abscissa,
+            const label& order
+        );
+        
+        //- Nucleation rate
         virtual tmp<volScalarField> nucleationSource
         (
             const volUnivariateMoment& moment
-        );
+        ) ;
 };
 
 

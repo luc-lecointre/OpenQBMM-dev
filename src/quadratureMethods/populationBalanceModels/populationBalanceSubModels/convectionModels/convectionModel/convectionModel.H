@@ -116,19 +116,25 @@ public:
 
 
     // Member Functions
+    
+        //-constant growthReduction
+        virtual volScalarField cRed() = 0;
+        virtual volScalarField cGro() = 0;
 
-        //- Caracteristic oxidation equation
+        //- Caracteristic convection equation
         virtual scalar characteristic
         (
             const scalar& abscissa,
-            const label& cellI
-        ) = 0 ;
+            const scalar& cRed,
+            const scalar& cGro
+        ) = 0;
         
-        //- Caracteristic oxidation equation
+        //- Caracteristic convection equation
         virtual scalar characteristic
         (
-            const label& cellI
-        ) = 0 ;
+            const scalar& cRed,
+            const scalar& cGro
+        ) = 0;
 };
 
 

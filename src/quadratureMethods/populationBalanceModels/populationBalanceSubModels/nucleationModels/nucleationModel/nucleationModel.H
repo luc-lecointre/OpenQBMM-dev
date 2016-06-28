@@ -117,13 +117,30 @@ public:
 
     // Member Functions
 
+        //collision models
+        virtual tmp<volScalarField> beta
+        (
+            const volScalarField& abscissa
+        ) =0;
+        
+        virtual tmp<volScalarField> betaN() =0;
+        
+        virtual tmp<volScalarField> betaPAH() =0;
+        
+        virtual tmp<volScalarField> xiNuc()=0;
+        
+        virtual tmp<volScalarField> xiCond
+        (
+            const volScalarField& abscissa,
+            const label& order
+        ) =0;
+        
         //- Nucleation rate
         virtual tmp<volScalarField> nucleationSource
         (
             const volUnivariateMoment& moment
         )= 0 ;
 };
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

@@ -2,7 +2,7 @@
 # Reads value from a specified cell and writes it with its variable name
 
 #echo "//Initial values" > 0/initC
-time=$(pwd)/../combustion/0.1.pbe
+time=$(pwd)/../combustion/0.2.pbe
 dir=$(pwd)/0
 
 init()
@@ -14,7 +14,7 @@ init()
             cd $dir
             cp Ydefault $filename
             sed -i "27s/.*/$message/" $filename
-            cd ../../combustion/0.1.pbe
+            cd ../../combustion/0.2.pbe
         fi
         cd $dir
         if [ "$filename" = "moment.0.populationBalance" ]
@@ -46,7 +46,7 @@ init()
             message='dimensions      [0 15 0 0 0 0 0];'
             sed -i "18s/.*/$message/" $filename
         fi
-        cd ../../combustion/0.1.pbe
+        cd ../../combustion/0.2.pbe
     done 
 }
 

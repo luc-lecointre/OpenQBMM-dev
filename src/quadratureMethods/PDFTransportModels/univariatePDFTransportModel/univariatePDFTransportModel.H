@@ -71,9 +71,6 @@ class univariatePDFTransportModel
     // Variables for ODE solver
         Switch ode_;
         
-        //- Moment inversion method
-        autoPtr<extendedMomentInversion> momentInverter_;
-        
         //- ODE constants
         scalar ATol_;
         scalar RTol_;
@@ -89,6 +86,9 @@ class univariatePDFTransportModel
 protected:
 
     // Protected data
+    
+        //- Moment inversion method
+        autoPtr<extendedMomentInversion> momentInverter_;
 
         //- Univariate quadrature approximation used to solve PDF transport
         univariateQuadratureApproximation quadrature_;
